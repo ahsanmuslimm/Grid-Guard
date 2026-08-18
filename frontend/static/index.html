@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridGuard — Autonomous Energy Grid Security</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">GRID<span class="logo-accent">GUARD</span></span>
+    </div>
+    <div class="header-sub">Autonomous Energy Grid Threat Response · Arize Phoenix MCP</div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill" id="pill-nodes">
+      <span class="pill-dot dot-green"></span>
+      <span id="pill-nodes-val">12 Nodes Online</span>
+    </div>
+    <div class="stat-pill" id="pill-threats">
+      <span class="pill-dot dot-red hidden" id="threat-dot"></span>
+      <span id="pill-threats-val">No Active Threats</span>
+    </div>
+    <div class="stat-pill">
+      <span class="pill-dot dot-purple"></span>
+      <span id="pill-phoenix-val">Phoenix: Connecting…</span>
+    </div>
+    <div class="system-time" id="system-time">--:--:--</div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════ MAIN GRID -->
+<main class="main-grid">
+
+  <!-- ── COL 1: Grid Map + Demo Panel ───────────────────────────────────── -->
+  <section class="col-left">
+
+    <!-- Grid Map -->
+    <div class="panel" id="panel-map">
+      <div class="panel-header">
+        <span class="panel-title">⚡ Live Grid Map</span>
+        <span class="panel-badge" id="map-badge">ALL NOMINAL</span>
+      </div>
+      <div class="grid-map" id="grid-map">
+        <!-- 12 nodes rendered by JS -->
+      </div>
+      <div class="map-legend">
+        <span><span class="legend-dot dot-green"></span>Normal</span>
+        <span><span class="legend-dot dot-yellow"></span>Investigating</span>
+        <span><span class="legend-dot dot-red"></span>Threat Active</span>
+        <span><span class="legend-dot dot-blue"></span>Resolved</span>
+      </div>
+    </div>
+
+    <!-- Demo Control Panel -->
+    <div class="panel" id="panel-demo">
+      <div class="panel-header">
+        <span class="panel-title">🎯 Attack Scenario Injector</span>
+        <span class="panel-badge badge-demo">DEMO CONTROLS</span>
+      </div>
+      <p class="demo-desc">Inject a live attack scenario to trigger the full agent pipeline.</p>
+      <div class="attack-buttons">
+        <button class="attack-btn btn-ransomware" onclick="injectAttack('ransomware')">
+          <span class="btn-icon">🔒</span>
+          <span class="btn-label">Ransomware</span>
+          <span class="btn-severity">CRITICAL</span>
+        </button>
+        <button class="attack-btn btn-access" onclick="injectAttack('unauthorized_access')">
+          <span class="btn-icon">🔑</span>
+          <span class="btn-label">Unauth Access</span>
+          <span class="btn-severity">HIGH</span>
+        </button>
+        <button class="attack-btn btn-ddos" onclick="injectAttack('ddos')">
+          <span class="btn-icon">💥</span>
+          <span class="btn-label">DDoS Attack</span>
+          <span class="btn-severity">HIGH</span>
+        </button>
+        <button class="attack-btn btn-exfil" onclick="injectAttack('data_exfiltration')">
+          <span class="btn-icon">📤</span>
+          <span class="btn-label">Data Exfil</span>
+          <span class="btn-severity">HIGH</span>
+        </button>
+      </div>
+      <div id="inject-feedback" class="inject-feedback hidden"></div>
+    </div>
+
+    <!-- Arize Phoenix Panel -->
+    <div class="panel" id="panel-phoenix">
+      <div class="panel-header">
+        <span class="panel-title">🧠 Arize Phoenix Observability</span>
+        <a id="phoenix-link" href="https://app.phoenix.arize.com" target="_blank" class="panel-link">Open Dashboard →</a>
+      </div>
+      <div class="phoenix-stats">
+        <div class="phoenix-stat">
+          <div class="pstat-value" id="pstat-traces">—</div>
+          <div class="pstat-label">Total Traces</div>
+        </div>
+        <div class="phoenix-stat">
+          <div class="pstat-value pstat-warn" id="pstat-hallucinations">—</div>
+          <div class="pstat-label">Hallucination Flags</div>
+        </div>
+        <div class="phoenix-stat">
+          <div class="pstat-value pstat-good" id="pstat-quality">—</div>
+          <div class="pstat-label">Avg Quality Score</div>
+        </div>
+        <div class="phoenix-stat">
+          <div class="pstat-value" id="pstat-status">—</div>
+          <div class="pstat-label">Connection</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── COL 2: Agent Decision Timeline ─────────────────────────────────── -->
+  <section class="col-mid">
+    <div class="panel panel-tall" id="panel-timeline">
+      <div class="panel-header">
+        <span class="panel-title">🤖 Agent Decision Timeline</span>
+        <span class="panel-badge" id="timeline-count">0 events</span>
+      </div>
+      <div class="timeline-feed" id="timeline-feed">
+        <div class="timeline-empty">
+          <div class="empty-icon">⏳</div>
+          <div>Waiting for agent activity…</div>
+          <div class="empty-sub">Inject an attack scenario to start the pipeline</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COL 3: Incident Reports ────────────────────────────────────────── -->
+  <section class="col-right">
+
+    <!-- Telemetry Live Feed -->
+    <div class="panel" id="panel-telemetry">
+      <div class="panel-header">
+        <span class="panel-title">📡 Live Telemetry</span>
+        <span class="live-indicator"><span class="live-dot"></span>LIVE</span>
+      </div>
+      <div class="telemetry-grid">
+        <div class="telem-cell">
+          <div class="telem-label">Voltage</div>
+          <div class="telem-value" id="telem-voltage">230.0 V</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-label">Frequency</div>
+          <div class="telem-value" id="telem-frequency">50.0 Hz</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-label">Active Node</div>
+          <div class="telem-value" id="telem-node">—</div>
+        </div>
+        <div class="telem-cell">
+          <div class="telem-label">Grid Status</div>
+          <div class="telem-value" id="telem-status">NORMAL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incident Reports -->
+    <div class="panel panel-reports" id="panel-reports">
+      <div class="panel-header">
+        <span class="panel-title">📋 Incident Reports</span>
+        <span class="panel-badge" id="report-count">0 reports</span>
+      </div>
+      <div class="reports-list" id="reports-list">
+        <div class="timeline-empty">
+          <div class="empty-icon">📭</div>
+          <div>No incidents resolved yet</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════ APPROVAL MODAL -->
+<div class="modal-overlay hidden" id="approval-overlay">
+  <div class="approval-modal">
+    <div class="approval-header">
+      <div class="approval-badge">🚨 CRITICAL THREAT — HUMAN APPROVAL REQUIRED</div>
+      <div class="approval-countdown" id="approval-countdown">120s</div>
+    </div>
+
+    <div class="approval-body">
+      <div class="approval-section">
+        <div class="approval-label">Incident ID</div>
+        <div class="approval-value mono" id="modal-incident-id">—</div>
+      </div>
+      <div class="approval-section">
+        <div class="approval-label">Threat Classification</div>
+        <div class="approval-value" id="modal-classification">—</div>
+      </div>
+      <div class="approval-section">
+        <div class="approval-label">Threat Summary</div>
+        <div class="approval-value" id="modal-summary">—</div>
+      </div>
+      <div class="approval-section">
+        <div class="approval-label">AI Reasoning Chain</div>
+        <div class="approval-value reasoning-box" id="modal-reasoning">—</div>
+      </div>
+      <div class="approval-section approval-row">
+        <div class="approval-half">
+          <div class="approval-label">MITRE Techniques</div>
+          <div class="approval-value mono small" id="modal-mitre">—</div>
+        </div>
+        <div class="approval-half">
+          <div class="approval-label">CVEs Identified</div>
+          <div class="approval-value mono small" id="modal-cves">—</div>
+        </div>
+      </div>
+      <div class="approval-section">
+        <div class="approval-label">Recommended Response</div>
+        <div class="approval-value playbook-badge" id="modal-playbook">—</div>
+      </div>
+    </div>
+
+    <div class="approval-actions">
+      <button class="approval-btn btn-approve" onclick="submitApproval('approved')">
+        ✓ Approve Response
+      </button>
+      <button class="approval-btn btn-escalate" onclick="submitApproval('escalated')">
+        ↑ Escalate to SOC
+      </button>
+      <button class="approval-btn btn-reject" onclick="submitApproval('rejected')">
+        ✗ Reject
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ REPORT DETAIL MODAL -->
+<div class="modal-overlay hidden" id="report-overlay">
+  <div class="report-modal">
+    <div class="report-modal-header">
+      <div id="report-modal-title">Incident Report</div>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="report-modal-body" id="report-modal-body">
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

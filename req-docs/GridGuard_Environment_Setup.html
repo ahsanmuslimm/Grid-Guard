@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridGuard — Environment Setup Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090f;
+    --bg2: #0c0f1a;
+    --bg3: #111520;
+    --border: #1a2035;
+    --accent: #4fffb0;
+    --accent2: #ff4d6d;
+    --accent3: #ffd166;
+    --blue: #4dc9ff;
+    --purple: #b06bff;
+    --text: #a8b8d0;
+    --text-dim: #445566;
+    --text-bright: #deeeff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 48px 32px 100px;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .brand {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--text-bright);
+    letter-spacing: 2px;
+  }
+
+  .brand span { color: var(--accent); }
+
+  .doc-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid rgba(79,255,176,0.3);
+    padding: 4px 12px;
+    letter-spacing: 2px;
+  }
+
+  /* PHASE HEADER */
+  .phase {
+    margin-bottom: 56px;
+  }
+
+  .phase-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .phase-num {
+    font-family: var(--display);
+    font-size: 72px;
+    line-height: 1;
+    color: var(--border);
+    min-width: 60px;
+  }
+
+  .phase-info {}
+
+  .phase-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .phase-title {
+    font-family: var(--display);
+    font-size: 38px;
+    color: var(--text-bright);
+    letter-spacing: 1px;
+  }
+
+  .phase-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    padding-left: 76px;
+    font-family: var(--mono);
+  }
+
+  /* STEP */
+  .step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .step.warning { border-left-color: var(--accent3); }
+  .step.danger { border-left-color: var(--accent2); }
+  .step.info { border-left-color: var(--blue); }
+  .step.purple { border-left-color: var(--purple); }
+
+  .step-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 32px;
+  }
+
+  .step-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-bright);
+    flex: 1;
+  }
+
+  .step-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .badge-green { background: rgba(79,255,176,0.1); color: var(--accent); border: 1px solid rgba(79,255,176,0.2); }
+  .badge-yellow { background: rgba(255,209,102,0.1); color: var(--accent3); border: 1px solid rgba(255,209,102,0.2); }
+  .badge-red { background: rgba(255,77,109,0.1); color: var(--accent2); border: 1px solid rgba(255,77,109,0.2); }
+  .badge-blue { background: rgba(77,201,255,0.1); color: var(--blue); border: 1px solid rgba(77,201,255,0.2); }
+  .badge-purple { background: rgba(176,107,255,0.1); color: var(--purple); border: 1px solid rgba(176,107,255,0.2); }
+
+  .step-body {
+    padding: 16px 20px;
+  }
+
+  .step-body p {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 12px;
+    font-weight: 300;
+  }
+
+  .step-body p strong {
+    color: var(--text-bright);
+    font-weight: 500;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .cmd { color: var(--accent); }
+  .code-block .flag { color: var(--accent3); }
+  .code-block .string { color: var(--blue); }
+  .code-block .var { color: var(--purple); }
+  .code-block .path { color: var(--accent2); }
+
+  .code-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* FILE TREE */
+  .file-tree {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 2;
+    margin: 12px 0;
+  }
+
+  .ft-dir { color: var(--blue); }
+  .ft-file { color: var(--text); }
+  .ft-comment { color: var(--text-dim); }
+  .ft-important { color: var(--accent); }
+
+  /* NOTE BOX */
+  .note {
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .note-warn {
+    background: rgba(255,209,102,0.06);
+    border: 1px solid rgba(255,209,102,0.2);
+    color: var(--accent3);
+  }
+
+  .note-danger {
+    background: rgba(255,77,109,0.06);
+    border: 1px solid rgba(255,77,109,0.2);
+    color: var(--accent2);
+  }
+
+  .note-success {
+    background: rgba(79,255,176,0.06);
+    border: 1px solid rgba(79,255,176,0.2);
+    color: var(--accent);
+  }
+
+  .note-info {
+    background: rgba(77,201,255,0.06);
+    border: 1px solid rgba(77,201,255,0.2);
+    color: var(--blue);
+  }
+
+  .note strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    list-style: none;
+    margin: 12px 0;
+  }
+
+  .checklist li {
+    padding: 6px 0 6px 28px;
+    position: relative;
+    font-size: 13px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--text-dim);
+  }
+
+  .checklist li span { color: var(--accent); }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+    position: relative;
+  }
+
+  .divider::after {
+    content: attr(data-label);
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    padding: 0 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  /* INLINE CODE */
+  code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent3);
+  }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  th {
+    background: var(--bg3);
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:hover td { background: var(--bg2); }
+
+  td:first-child { color: var(--text-bright); }
+
+  /* PROGRESS BAR */
+  .progress-track {
+    display: flex;
+    gap: 4px;
+    margin: 24px 0 36px;
+    flex-wrap: wrap;
+  }
+
+  .progress-item {
+    flex: 1;
+    min-width: 80px;
+    padding: 8px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .progress-item.active {
+    border-color: var(--accent);
+    background: rgba(79,255,176,0.05);
+  }
+
+  .progress-item-num {
+    font-family: var(--display);
+    font-size: 24px;
+    color: var(--text-dim);
+    line-height: 1;
+  }
+
+  .progress-item.active .progress-item-num { color: var(--accent); }
+
+  .progress-item-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .progress-item.active .progress-item-label { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">GRID<span>GUARD</span></div>
+  <div class="doc-tag">ENVIRONMENT SETUP — FROM ZERO</div>
+</div>
+
+<!-- PHASE OVERVIEW -->
+<div class="progress-track">
+  <div class="progress-item active"><div class="progress-item-num">1</div><div class="progress-item-label">Prerequisites</div></div>
+  <div class="progress-item active"><div class="progress-item-num">2</div><div class="progress-item-label">GCP Setup</div></div>
+  <div class="progress-item active"><div class="progress-item-num">3</div><div class="progress-item-label">Python Env</div></div>
+  <div class="progress-item active"><div class="progress-item-num">4</div><div class="progress-item-label">ADK Agent</div></div>
+  <div class="progress-item active"><div class="progress-item-num">5</div><div class="progress-item-label">Arize Phoenix</div></div>
+  <div class="progress-item active"><div class="progress-item-num">6</div><div class="progress-item-label">Data Layer</div></div>
+  <div class="progress-item active"><div class="progress-item-num">7</div><div class="progress-item-label">Sub-Agents</div></div>
+  <div class="progress-item active"><div class="progress-item-num">8</div><div class="progress-item-label">Frontend</div></div>
+  <div class="progress-item active"><div class="progress-item-num">9</div><div class="progress-item-label">Deploy</div></div>
+  <div class="progress-item active"><div class="progress-item-num">10</div><div class="progress-item-label">Secrets</div></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 1 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">01</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 01</div>
+      <div class="phase-title">Prerequisites — Install Everything First</div>
+    </div>
+  </div>
+  <div class="phase-desc">Before touching GCP or code, every team member needs these tools installed locally.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1.1</span>
+      <span class="step-title">Install Python 3.11+</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Arize Phoenix client requires <strong>Python 3.10 to 3.14</strong>. Use 3.11 for maximum compatibility.</p>
+      <div class="code-label">Check existing version</div>
+      <div class="code-block">
+<span class="cmd">python3 --version</span>   <span class="comment"># Must be 3.10 or higher</span>
+      </div>
+      <div class="code-label">Install via official installer (windows/mac) or apt (linux)</div>
+      <div class="code-block">
+<span class="comment"># Ubuntu / Debian</span>
+<span class="cmd">sudo apt update && sudo apt install python3.11 python3.11-venv python3-pip -y</span>
+
+<span class="comment"># macOS (Homebrew)</span>
+<span class="cmd">brew install python@3.11</span>
+
+<span class="comment"># Windows: download from https://www.python.org/downloads/</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1.2</span>
+      <span class="step-title">Install Node.js 18+ (Required for Arize Phoenix MCP)</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>The Arize Phoenix MCP server runs via <strong>npx</strong>. Node.js is mandatory.</p>
+      <div class="code-block">
+<span class="comment"># Ubuntu</span>
+<span class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</span>
+<span class="cmd">sudo apt install nodejs -y</span>
+
+<span class="comment"># macOS</span>
+<span class="cmd">brew install node</span>
+
+<span class="comment"># Verify</span>
+<span class="cmd">node --version</span>   <span class="comment"># Must be v18 or higher</span>
+<span class="cmd">npx --version</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1.3</span>
+      <span class="step-title">Install Google Cloud CLI (gcloud)</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Linux / macOS</span>
+<span class="cmd">curl https://sdk.cloud.google.com | bash</span>
+<span class="cmd">exec -l $SHELL</span>
+
+<span class="comment"># Verify</span>
+<span class="cmd">gcloud --version</span>
+      </div>
+      <div class="note note-info">
+        <strong>Windows</strong>
+        Download installer from: https://cloud.google.com/sdk/docs/install
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1.4</span>
+      <span class="step-title">Install Docker Desktop</span>
+      <span class="step-badge badge-yellow">Optional but Recommended</span>
+    </div>
+    <div class="step-body">
+      <p>Needed for local Phoenix deployment and containerized testing. Download from <strong>https://www.docker.com/products/docker-desktop</strong></p>
+      <div class="code-block">
+<span class="cmd">docker --version</span>   <span class="comment"># Verify after install</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">1.5</span>
+      <span class="step-title">Install Git + Create GitHub Repo</span>
+      <span class="step-badge badge-green">Required for Submission</span>
+    </div>
+    <div class="step-body">
+      <p>Hackathon requires a public repo with open source license. Create it now.</p>
+      <div class="code-block">
+<span class="cmd">git --version</span>
+
+<span class="comment"># On GitHub: create new public repo named "gridguard"</span>
+<span class="comment"># Add Apache 2.0 license (required for submission detection)</span>
+<span class="comment"># Clone locally:</span>
+<span class="cmd">git clone https://github.com/YOUR_USERNAME/gridguard.git</span>
+<span class="cmd">cd gridguard</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note note-success">
+    <strong>Phase 1 Verification</strong>
+    python3 --version ✓ | node --version ✓ | gcloud --version ✓ | git --version ✓
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 2 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">02</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 02</div>
+      <div class="phase-title">Google Cloud Project Setup</div>
+    </div>
+  </div>
+  <div class="phase-desc">Create GCP project, enable required APIs, configure billing and permissions.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2.1</span>
+      <span class="step-title">Create GCP Account + Activate Free Trial</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Go to <strong>https://cloud.google.com/free</strong> — sign up for $300 free trial. Apply for the hackathon $100 credit separately at the form linked in the hackathon page.</p>
+      <div class="note note-danger">
+        <strong>Critical — Do This Immediately</strong>
+        Set a billing budget alert at $50. GCP Cloud Run + Agent Runtime can accumulate costs fast if left running. Go to: Billing → Budgets & Alerts → Create Budget.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2.2</span>
+      <span class="step-title">Create New GCP Project</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Authenticate gcloud</span>
+<span class="cmd">gcloud auth login</span>
+
+<span class="comment"># Create new project</span>
+<span class="cmd">gcloud projects create gridguard-agent-2026 <span class="flag">--name</span>=<span class="string">"GridGuard"</span></span>
+
+<span class="comment"># Set as active project</span>
+<span class="cmd">gcloud config set project gridguard-agent-2026</span>
+
+<span class="comment"># Verify</span>
+<span class="cmd">gcloud config get-value project</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2.3</span>
+      <span class="step-title">Enable All Required APIs</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Enable every API GridGuard needs in one command. Missing APIs will cause silent failures later.</p>
+      <div class="code-block">
+<span class="cmd">gcloud services enable \
+  aiplatform.googleapis.com \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  secretmanager.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudresourcemanager.googleapis.com \
+  iam.googleapis.com \
+  logging.googleapis.com \
+  monitoring.googleapis.com</span>
+      </div>
+      <div class="note note-info">
+        <strong>What Each API Does</strong>
+        aiplatform = Agent Builder + Gemini | run = Cloud Run hosting | cloudbuild = auto container builds | secretmanager = API key storage | artifactregistry = container images
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2.4</span>
+      <span class="step-title">Create Service Account + Download Key</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Create service account</span>
+<span class="cmd">gcloud iam service-accounts create gridguard-sa \
+  <span class="flag">--display-name</span>=<span class="string">"GridGuard Service Account"</span></span>
+
+<span class="comment"># Grant required roles</span>
+<span class="cmd">gcloud projects add-iam-policy-binding gridguard-agent-2026 \
+  <span class="flag">--member</span>=<span class="string">"serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com"</span> \
+  <span class="flag">--role</span>=<span class="string">"roles/aiplatform.user"</span></span>
+
+<span class="cmd">gcloud projects add-iam-policy-binding gridguard-agent-2026 \
+  <span class="flag">--member</span>=<span class="string">"serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com"</span> \
+  <span class="flag">--role</span>=<span class="string">"roles/secretmanager.secretAccessor"</span></span>
+
+<span class="cmd">gcloud projects add-iam-policy-binding gridguard-agent-2026 \
+  <span class="flag">--member</span>=<span class="string">"serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com"</span> \
+  <span class="flag">--role</span>=<span class="string">"roles/run.invoker"</span></span>
+
+<span class="comment"># Download credentials key (store safely — never commit to git)</span>
+<span class="cmd">gcloud iam service-accounts keys create <span class="path">./credentials/gcp-key.json</span> \
+  <span class="flag">--iam-account</span>=<span class="string">"gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com"</span></span>
+      </div>
+      <div class="note note-danger">
+        <strong>Never Commit This File</strong>
+        Add credentials/ to .gitignore immediately. This key grants full GCP access.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">2.5</span>
+      <span class="step-title">Set Application Default Credentials</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="cmd">gcloud auth application-default login</span>
+<span class="comment"># Follow browser prompt — this enables local SDK access</span>
+
+<span class="comment"># Set environment variable for service account key</span>
+<span class="cmd">export GOOGLE_APPLICATION_CREDENTIALS=<span class="path">"./credentials/gcp-key.json"</span></span>
+<span class="cmd">export GOOGLE_CLOUD_PROJECT=<span class="string">"gridguard-agent-2026"</span></span>
+<span class="cmd">export GOOGLE_CLOUD_REGION=<span class="string">"us-central1"</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 3 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">03</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 03</div>
+      <div class="phase-title">Python Environment + Project Structure</div>
+    </div>
+  </div>
+  <div class="phase-desc">Set up virtual environment, install all dependencies, create project folder structure.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3.1</span>
+      <span class="step-title">Create Virtual Environment</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Inside your cloned repo folder</span>
+<span class="cmd">cd gridguard</span>
+<span class="cmd">python3.11 -m venv venv</span>
+
+<span class="comment"># Activate</span>
+<span class="cmd">source venv/bin/activate</span>          <span class="comment"># Linux / macOS</span>
+<span class="cmd">venv\Scripts\activate</span>              <span class="comment"># Windows</span>
+
+<span class="comment"># Verify</span>
+<span class="cmd">which python</span>   <span class="comment"># Should point to venv/bin/python</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3.2</span>
+      <span class="step-title">Install All Dependencies</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>requirements.txt</code> with all GridGuard dependencies.</p>
+      <div class="code-label">requirements.txt — create this file in repo root</div>
+      <div class="code-block">
+<span class="comment"># Google Cloud ADK + Agent Runtime</span>
+google-cloud-aiplatform[agent_engines,adk]>=1.112
+google-adk>=0.5.0
+
+<span class="comment"># Arize Phoenix — Observability Core</span>
+arize-phoenix>=8.0.0
+arize-phoenix-otel>=0.6.0
+arize-phoenix-client>=2.7.0
+openinference-instrumentation-google-genai>=0.3.0
+openinference-instrumentation-vertexai>=0.4.0
+opentelemetry-sdk>=1.28.0
+opentelemetry-exporter-otlp>=1.28.0
+
+<span class="comment"># Data + Threat Intelligence</span>
+requests>=2.32.0
+httpx>=0.27.0
+pandas>=2.2.0
+numpy>=2.0.0
+
+<span class="comment"># SCADA Simulator</span>
+asyncio-mqtt>=0.16.0
+pydantic>=2.8.0
+
+<span class="comment"># GCP Secret Manager</span>
+google-cloud-secret-manager>=2.20.0
+
+<span class="comment"># Web Framework (Frontend Backend)</span>
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=13.0
+
+<span class="comment"># Utilities</span>
+python-dotenv>=1.0.0
+rich>=13.7.0
+structlog>=24.4.0
+      </div>
+      <div class="code-block">
+<span class="comment"># Install all dependencies</span>
+<span class="cmd">pip install --upgrade pip</span>
+<span class="cmd">pip install -r requirements.txt</span>
+
+<span class="comment"># Verify key packages</span>
+<span class="cmd">python -c <span class="string">"import google.adk; print('ADK OK')"</span></span>
+<span class="cmd">python -c <span class="string">"import phoenix; print('Phoenix OK')"</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3.3</span>
+      <span class="step-title">Create Project Folder Structure</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>This is the exact structure your entire GridGuard codebase will follow.</p>
+      <div class="file-tree">
+<span class="ft-dir">gridguard/</span>
+├── <span class="ft-important">LICENSE</span>                          <span class="ft-comment"># Apache 2.0 — REQUIRED for hackathon</span>
+├── <span class="ft-important">README.md</span>                        <span class="ft-comment"># Setup + demo instructions</span>
+├── <span class="ft-file">requirements.txt</span>
+├── <span class="ft-file">.env.example</span>                    <span class="ft-comment"># Template (no real keys)</span>
+├── <span class="ft-file">.gitignore</span>
+│
+├── <span class="ft-dir">agents/</span>                          <span class="ft-comment"># All ADK agent definitions</span>
+│   ├── <span class="ft-file">__init__.py</span>
+│   ├── <span class="ft-important">orchestrator.py</span>              <span class="ft-comment"># Root agent — coordinates all sub-agents</span>
+│   ├── <span class="ft-important">detection_agent.py</span>           <span class="ft-comment"># Sub-agent 1: anomaly detection</span>
+│   ├── <span class="ft-important">investigation_agent.py</span>       <span class="ft-comment"># Sub-agent 2: threat investigation</span>
+│   └── <span class="ft-important">response_agent.py</span>            <span class="ft-comment"># Sub-agent 3: playbook execution</span>
+│
+├── <span class="ft-dir">tools/</span>                           <span class="ft-comment"># Agent tools (functions agents can call)</span>
+│   ├── <span class="ft-file">__init__.py</span>
+│   ├── <span class="ft-file">scada_reader.py</span>              <span class="ft-comment"># Reads SCADA telemetry stream</span>
+│   ├── <span class="ft-file">mitre_lookup.py</span>              <span class="ft-comment"># MITRE ATT&CK ICS API queries</span>
+│   ├── <span class="ft-file">cve_lookup.py</span>                <span class="ft-comment"># NVD CVE API queries</span>
+│   ├── <span class="ft-file">playbook_executor.py</span>         <span class="ft-comment"># Executes response playbooks</span>
+│   └── <span class="ft-file">report_generator.py</span>          <span class="ft-comment"># Generates incident reports</span>
+│
+├── <span class="ft-dir">simulator/</span>                       <span class="ft-comment"># SCADA data simulator</span>
+│   ├── <span class="ft-file">__init__.py</span>
+│   ├── <span class="ft-file">scada_simulator.py</span>           <span class="ft-comment"># Generates realistic SCADA streams</span>
+│   └── <span class="ft-file">attack_scenarios.py</span>          <span class="ft-comment"># Predefined attack scenario injector</span>
+│
+├── <span class="ft-dir">playbooks/</span>                       <span class="ft-comment"># JSON response playbooks</span>
+│   ├── <span class="ft-file">ransomware.json</span>
+│   ├── <span class="ft-file">unauthorized_access.json</span>
+│   ├── <span class="ft-file">ddos.json</span>
+│   └── <span class="ft-file">data_exfiltration.json</span>
+│
+├── <span class="ft-dir">observability/</span>                   <span class="ft-comment"># Arize Phoenix integration</span>
+│   ├── <span class="ft-file">__init__.py</span>
+│   ├── <span class="ft-important">phoenix_setup.py</span>             <span class="ft-comment"># Phoenix tracer initialization</span>
+│   ├── <span class="ft-file">evaluators.py</span>                <span class="ft-comment"># Hallucination + quality evaluators</span>
+│   └── <span class="ft-file">mcp_config.json</span>              <span class="ft-comment"># Phoenix MCP server config</span>
+│
+├── <span class="ft-dir">frontend/</span>                        <span class="ft-comment"># Dashboard (FastAPI + HTML)</span>
+│   ├── <span class="ft-file">main.py</span>                      <span class="ft-comment"># FastAPI application</span>
+│   ├── <span class="ft-dir">static/</span>
+│   │   ├── <span class="ft-file">index.html</span>               <span class="ft-comment"># Main dashboard</span>
+│   │   ├── <span class="ft-file">app.js</span>
+│   │   └── <span class="ft-file">style.css</span>
+│   └── <span class="ft-dir">templates/</span>
+│
+├── <span class="ft-dir">credentials/</span>                     <span class="ft-comment"># GITIGNORED — never commit</span>
+│   └── <span class="ft-file">gcp-key.json</span>
+│
+├── <span class="ft-dir">deploy/</span>                          <span class="ft-comment"># Deployment configs</span>
+│   ├── <span class="ft-file">Dockerfile</span>
+│   └── <span class="ft-file">cloudbuild.yaml</span>
+│
+└── <span class="ft-file">main.py</span>                          <span class="ft-comment"># Entry point</span>
+      </div>
+      <div class="code-block">
+<span class="comment"># Create all directories at once</span>
+<span class="cmd">mkdir -p agents tools simulator playbooks observability frontend/static frontend/templates credentials deploy</span>
+<span class="cmd">touch agents/__init__.py tools/__init__.py simulator/__init__.py observability/__init__.py</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">3.4</span>
+      <span class="step-title">Create .env File + .gitignore</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-label">.env — create locally, NEVER commit</div>
+      <div class="code-block">
+<span class="comment"># Google Cloud</span>
+<span class="var">GOOGLE_CLOUD_PROJECT</span>=gridguard-agent-2026
+<span class="var">GOOGLE_CLOUD_REGION</span>=us-central1
+<span class="var">GOOGLE_APPLICATION_CREDENTIALS</span>=./credentials/gcp-key.json
+
+<span class="comment"># Arize Phoenix</span>
+<span class="var">PHOENIX_API_KEY</span>=your_phoenix_api_key_here
+<span class="var">PHOENIX_BASE_URL</span>=https://app.phoenix.arize.com
+
+<span class="comment"># Threat Intelligence APIs</span>
+<span class="var">NVD_API_KEY</span>=your_nvd_api_key_here
+
+<span class="comment"># App Config</span>
+<span class="var">GRIDGUARD_ENV</span>=development
+<span class="var">LOG_LEVEL</span>=INFO
+      </div>
+      <div class="code-label">.gitignore — create this immediately</div>
+      <div class="code-block">
+credentials/
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 4 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">04</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 04</div>
+      <div class="phase-title">Google ADK — Build The Multi-Agent System</div>
+    </div>
+  </div>
+  <div class="phase-desc">Configure ADK, build the orchestrator and three sub-agents using SequentialAgent pattern.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.1</span>
+      <span class="step-title">Initialize ADK Project</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Install ADK CLI tools</span>
+<span class="cmd">pip install google-adk</span>
+
+<span class="comment"># Verify ADK is accessible</span>
+<span class="cmd">python -c <span class="string">"from google.adk.agents import LlmAgent, SequentialAgent; print('ADK Multi-Agent OK')"</span></span>
+
+<span class="comment"># Initialize Vertex AI with your project</span>
+<span class="cmd">python -c <span class="string">"import vertexai; vertexai.init(project='gridguard-agent-2026', location='us-central1'); print('Vertex AI OK')"</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.2</span>
+      <span class="step-title">Build Detection Sub-Agent</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>agents/detection_agent.py</code> — this agent monitors SCADA telemetry and detects anomalies.</p>
+      <div class="code-label">agents/detection_agent.py</div>
+      <div class="code-block">
+<span class="cmd">from</span> google.adk.agents <span class="cmd">import</span> LlmAgent
+<span class="cmd">from</span> tools.scada_reader <span class="cmd">import</span> read_scada_telemetry, check_voltage_anomaly
+<span class="cmd">from</span> tools.scada_reader <span class="cmd">import</span> check_access_patterns, check_command_sequences
+
+detection_agent = LlmAgent(
+    name=<span class="string">"detection_agent"</span>,
+    model=<span class="string">"gemini-2.0-flash"</span>,
+    description=<span class="string">"Monitors SCADA telemetry for anomalies and cyber threats"</span>,
+    instruction=<span class="string">"""
+    You are a SCADA anomaly detection specialist for energy infrastructure.
+    Your job:
+    1. Read current SCADA telemetry using read_scada_telemetry tool
+    2. Check for voltage anomalies using check_voltage_anomaly tool
+    3. Check for suspicious access patterns using check_access_patterns tool
+    4. Check for unauthorized command sequences using check_command_sequences tool
+    5. If ANY anomaly is detected, output structured JSON:
+       {"anomaly_detected": true, "type": "...", "severity": "...", 
+        "raw_data": {...}, "confidence": 0.0-1.0}
+    6. If no anomaly, output: {"anomaly_detected": false}
+    Always use ALL tools before concluding. Never skip a check.
+    """</span>,
+    tools=[read_scada_telemetry, check_voltage_anomaly, 
+           check_access_patterns, check_command_sequences],
+    output_key=<span class="string">"detection_result"</span>   <span class="comment"># Writes to session.state</span>
+)
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.3</span>
+      <span class="step-title">Build Investigation Sub-Agent</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>agents/investigation_agent.py</code> — reads detection result, queries threat intel, classifies threat.</p>
+      <div class="code-label">agents/investigation_agent.py</div>
+      <div class="code-block">
+<span class="cmd">from</span> google.adk.agents <span class="cmd">import</span> LlmAgent
+<span class="cmd">from</span> tools.mitre_lookup <span class="cmd">import</span> lookup_mitre_technique
+<span class="cmd">from</span> tools.cve_lookup <span class="cmd">import</span> lookup_cve
+
+investigation_agent = LlmAgent(
+    name=<span class="string">"investigation_agent"</span>,
+    model=<span class="string">"gemini-2.0-flash"</span>,
+    description=<span class="string">"Investigates detected threats using threat intelligence"</span>,
+    instruction=<span class="string">"""
+    You are a cybersecurity threat investigator for energy infrastructure.
+    The detection result from the previous agent is in {detection_result}.
+    
+    If detection_result shows anomaly_detected=false: output {"threat_confirmed": false}
+    
+    If anomaly detected:
+    1. Use lookup_mitre_technique to find matching MITRE ATT&CK ICS techniques
+    2. Use lookup_cve to find relevant CVEs for the attack pattern
+    3. Classify the threat:
+       - CRITICAL: Active exploitation, data exfiltration, ransomware
+       - HIGH: Unauthorized access, suspicious command sequences  
+       - MEDIUM: Anomalous patterns, policy violations
+       - LOW: Minor deviations, false positive candidates
+    4. Output structured JSON:
+       {"threat_confirmed": true, "classification": "CRITICAL|HIGH|MEDIUM|LOW",
+        "attack_type": "...", "mitre_techniques": [...], "cves": [...],
+        "false_positive_probability": 0.0-1.0, "recommended_playbook": "..."}
+    
+    Only classify CRITICAL if you have strong evidence. Err toward HIGH when uncertain.
+    """</span>,
+    tools=[lookup_mitre_technique, lookup_cve],
+    output_key=<span class="string">"investigation_result"</span>
+)
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.4</span>
+      <span class="step-title">Build Response Sub-Agent</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>agents/response_agent.py</code> — executes playbook, generates report, handles human approval gate.</p>
+      <div class="code-label">agents/response_agent.py</div>
+      <div class="code-block">
+<span class="cmd">from</span> google.adk.agents <span class="cmd">import</span> LlmAgent
+<span class="cmd">from</span> tools.playbook_executor <span class="cmd">import</span> execute_playbook, request_human_approval
+<span class="cmd">from</span> tools.report_generator <span class="cmd">import</span> generate_incident_report
+
+response_agent = LlmAgent(
+    name=<span class="string">"response_agent"</span>,
+    model=<span class="string">"gemini-2.0-flash"</span>,
+    description=<span class="string">"Executes threat response playbooks and generates incident reports"</span>,
+    instruction=<span class="string">"""
+    You are a threat response coordinator for energy infrastructure.
+    Detection result: {detection_result}
+    Investigation result: {investigation_result}
+    
+    If threat_confirmed=false: generate a false-positive report and exit.
+    
+    If threat confirmed:
+    - CRITICAL threats: MUST call request_human_approval FIRST and wait
+    - HIGH threats: call request_human_approval then execute after 60 seconds if no response
+    - MEDIUM/LOW: execute playbook immediately
+    
+    Steps:
+    1. For CRITICAL/HIGH: call request_human_approval with full threat details
+    2. Call execute_playbook with the recommended_playbook name
+    3. Call generate_incident_report with all collected data
+    4. Output final JSON with all actions taken and their outcomes
+    
+    NEVER execute a CRITICAL response without human approval. This is a safety rule.
+    """</span>,
+    tools=[execute_playbook, request_human_approval, generate_incident_report],
+    output_key=<span class="string">"response_result"</span>
+)
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.5</span>
+      <span class="step-title">Build Orchestrator — Wire All Sub-Agents</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>agents/orchestrator.py</code> — uses ADK's SequentialAgent to chain all sub-agents.</p>
+      <div class="code-label">agents/orchestrator.py</div>
+      <div class="code-block">
+<span class="cmd">from</span> google.adk.agents <span class="cmd">import</span> SequentialAgent
+<span class="cmd">from</span> agents.detection_agent <span class="cmd">import</span> detection_agent
+<span class="cmd">from</span> agents.investigation_agent <span class="cmd">import</span> investigation_agent
+<span class="cmd">from</span> agents.response_agent <span class="cmd">import</span> response_agent
+
+<span class="comment"># SequentialAgent runs detection → investigation → response</span>
+<span class="comment"># State is shared via session.state using output_key pattern</span>
+gridguard_pipeline = SequentialAgent(
+    name=<span class="string">"gridguard_pipeline"</span>,
+    description=<span class="string">"GridGuard: Autonomous SCADA threat detection and response pipeline"</span>,
+    sub_agents=[
+        detection_agent,
+        investigation_agent,
+        response_agent
+    ]
+)
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">4.6</span>
+      <span class="step-title">Test Agent Pipeline Locally</span>
+      <span class="step-badge badge-yellow">Test Before Proceeding</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Run ADK web UI locally to inspect agent execution</span>
+<span class="cmd">adk web</span>
+
+<span class="comment"># Or run via Python</span>
+<span class="cmd">python -c <span class="string">"
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from agents.orchestrator import gridguard_pipeline
+
+session_service = InMemorySessionService()
+runner = Runner(agent=gridguard_pipeline, 
+                app_name='gridguard',
+                session_service=session_service)
+print('Pipeline OK — agents wired correctly')
+"</span></span>
+      </div>
+      <div class="note note-success">
+        <strong>Expected Output</strong>
+        Pipeline OK — agents wired correctly. If you see import errors, fix them before moving to Phase 5.
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 5 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">05</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 05</div>
+      <div class="phase-title">Arize Phoenix — Observability Core</div>
+    </div>
+  </div>
+  <div class="phase-desc">This is your winning differentiator. Spend 40% of total build time here. Do not rush this phase.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.1</span>
+      <span class="step-title">Create Arize Phoenix Account</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Go to <strong>https://app.phoenix.arize.com</strong> → Sign up for free account → Create new project named <code>gridguard</code> → Copy your API key.</p>
+      <div class="note note-warn">
+        <strong>Save These Values to .env Immediately</strong>
+        PHOENIX_API_KEY=your_key_here | PHOENIX_BASE_URL=https://app.phoenix.arize.com
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.2</span>
+      <span class="step-title">Configure Phoenix MCP Server</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>The Phoenix MCP server runs via npx. Configure it to connect to your Phoenix project.</p>
+      <div class="code-label">observability/mcp_config.json</div>
+      <div class="code-block">
+{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"phoenix"</span>: {
+      <span class="string">"command"</span>: <span class="string">"npx"</span>,
+      <span class="string">"args"</span>: [
+        <span class="string">"-y"</span>,
+        <span class="string">"@arizeai/phoenix-mcp@latest"</span>,
+        <span class="string">"--baseUrl"</span>,
+        <span class="string">"https://app.phoenix.arize.com"</span>,
+        <span class="string">"--apiKey"</span>,
+        <span class="string">"YOUR_PHOENIX_API_KEY"</span>
+      ]
+    }
+  }
+}
+      </div>
+      <div class="code-block">
+<span class="comment"># Test MCP server connection</span>
+<span class="cmd">npx -y @arizeai/phoenix-mcp@latest \
+  --baseUrl https://app.phoenix.arize.com \
+  --apiKey $PHOENIX_API_KEY</span>
+<span class="comment"># Should show: Phoenix MCP Server running...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.3</span>
+      <span class="step-title">Initialize Phoenix Tracer in Agent Code</span>
+      <span class="step-badge badge-green">Required — Core Integration</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>observability/phoenix_setup.py</code> — this must be imported BEFORE any agent runs.</p>
+      <div class="code-label">observability/phoenix_setup.py</div>
+      <div class="code-block">
+<span class="cmd">import</span> os
+<span class="cmd">from</span> phoenix.otel <span class="cmd">import</span> register
+<span class="cmd">from</span> openinference.instrumentation.vertexai <span class="cmd">import</span> VertexAIInstrumentor
+<span class="cmd">from</span> openinference.instrumentation.google_genai <span class="cmd">import</span> GoogleGenAIInstrumentor
+<span class="cmd">from</span> opentelemetry <span class="cmd">import</span> trace
+
+<span class="cmd">def</span> initialize_phoenix():
+    <span class="string">"""Initialize Arize Phoenix tracing — call before any agent execution"""</span>
+    
+    <span class="comment"># Register Phoenix as the tracing backend</span>
+    tracer_provider = register(
+        project_name=<span class="string">"gridguard"</span>,
+        endpoint=<span class="string">"https://app.phoenix.arize.com/v1/traces"</span>,
+        headers={<span class="string">"api_key"</span>: os.getenv(<span class="string">"PHOENIX_API_KEY"</span>)},
+    )
+    
+    <span class="comment"># Auto-instrument Vertex AI calls (ADK uses Vertex AI)</span>
+    VertexAIInstrumentor().instrument(tracer_provider=tracer_provider)
+    
+    <span class="comment"># Auto-instrument direct Gemini calls</span>
+    GoogleGenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+    
+    tracer = trace.get_tracer(<span class="string">"gridguard"</span>)
+    <span class="cmd">print</span>(<span class="string">"✓ Phoenix tracing initialized — all agent decisions will be traced"</span>)
+    <span class="cmd">return</span> tracer
+
+<span class="comment"># Export tracer for use in agents</span>
+tracer = initialize_phoenix()
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.4</span>
+      <span class="step-title">Add Custom Span Tracing to Agents</span>
+      <span class="step-badge badge-green">Required — Judges Will Look For This</span>
+    </div>
+    <div class="step-body">
+      <p>Add manual spans to capture critical decision points that auto-instrumentation might miss.</p>
+      <div class="code-label">Add this pattern to each tool in tools/</div>
+      <div class="code-block">
+<span class="cmd">from</span> opentelemetry <span class="cmd">import</span> trace
+<span class="cmd">from</span> observability.phoenix_setup <span class="cmd">import</span> tracer
+
+<span class="cmd">def</span> lookup_mitre_technique(anomaly_type: str, raw_data: dict) -> dict:
+    <span class="string">"""Look up MITRE ATT&CK ICS techniques for detected anomaly"""</span>
+    
+    <span class="comment"># Create a custom span — this appears in Phoenix traces</span>
+    <span class="cmd">with</span> tracer.start_as_current_span(<span class="string">"mitre_lookup"</span>) <span class="cmd">as</span> span:
+        span.set_attribute(<span class="string">"anomaly.type"</span>, anomaly_type)
+        span.set_attribute(<span class="string">"input.raw_data_keys"</span>, str(list(raw_data.keys())))
+        
+        <span class="comment"># ... actual MITRE API call logic ...</span>
+        result = _call_mitre_api(anomaly_type)
+        
+        span.set_attribute(<span class="string">"output.techniques_found"</span>, len(result.get(<span class="string">"techniques"</span>, [])))
+        span.set_attribute(<span class="string">"output.confidence"</span>, result.get(<span class="string">"confidence"</span>, 0))
+        
+        <span class="cmd">return</span> result
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.5</span>
+      <span class="step-title">Configure Hallucination Evaluators</span>
+      <span class="step-badge badge-red">Critical — Your Knockout Demo Moment</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>observability/evaluators.py</code> — this detects when the agent fabricates threat data.</p>
+      <div class="code-label">observability/evaluators.py</div>
+      <div class="code-block">
+<span class="cmd">import</span> phoenix <span class="cmd">as</span> px
+<span class="cmd">from</span> phoenix.evals <span class="cmd">import</span> (
+    HallucinationEvaluator,
+    RelevanceEvaluator,
+    run_evals,
+    llm_classify
+)
+<span class="cmd">from</span> phoenix.evals.models <span class="cmd">import</span> GeminiModel
+
+<span class="cmd">def</span> setup_evaluators():
+    <span class="string">"""Configure evaluators for GridGuard agent responses"""</span>
+    
+    eval_model = GeminiModel(
+        model=<span class="string">"gemini-2.0-flash"</span>,
+        project=<span class="string">"gridguard-agent-2026"</span>
+    )
+    
+    <span class="comment"># Hallucination evaluator — detects fabricated CVEs or MITRE techniques</span>
+    hallucination_evaluator = HallucinationEvaluator(eval_model)
+    
+    <span class="comment"># Relevance evaluator — did the response actually match the detected threat?</span>
+    relevance_evaluator = RelevanceEvaluator(eval_model)
+    
+    <span class="cmd">return</span> {
+        <span class="string">"hallucination"</span>: hallucination_evaluator,
+        <span class="string">"relevance"</span>: relevance_evaluator
+    }
+
+<span class="cmd">def</span> run_response_evaluation(spans_df, evaluators):
+    <span class="string">"""Run evaluations on completed agent spans — call after each incident"""</span>
+    results = run_evals(
+        dataframe=spans_df,
+        evaluators=list(evaluators.values()),
+        provide_explanation=<span class="cmd">True</span>   <span class="comment"># Show WHY it flagged hallucination</span>
+    )
+    <span class="cmd">return</span> results
+      </div>
+      <div class="note note-success">
+        <strong>Demo Moment</strong>
+        During demo, deliberately trigger a scenario where the agent hallucinates a CVE. Show the evaluator catching it in Phoenix. This is the moment judges from Arize will remember.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">5.6</span>
+      <span class="step-title">Verify Phoenix Receives Traces</span>
+      <span class="step-badge badge-yellow">Verify Before Proceeding</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Run a simple test trace</span>
+<span class="cmd">python -c <span class="string">"
+from observability.phoenix_setup import tracer
+from opentelemetry import trace
+
+with tracer.start_as_current_span('test_span') as span:
+    span.set_attribute('test.message', 'GridGuard Phoenix connection test')
+    span.set_attribute('test.status', 'success')
+    
+print('Test trace sent — check https://app.phoenix.arize.com for gridguard project')
+"</span></span>
+      </div>
+      <p>Open <strong>https://app.phoenix.arize.com</strong> → your gridguard project → you should see a <code>test_span</code> trace. If not, debug the API key and endpoint before continuing.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 6 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">06</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 06</div>
+      <div class="phase-title">Data Layer — SCADA Simulator + Threat Intel</div>
+    </div>
+  </div>
+  <div class="phase-desc">Build the SCADA simulator and wire up public threat intelligence APIs.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">6.1</span>
+      <span class="step-title">Build SCADA Telemetry Simulator</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>Create <code>simulator/scada_simulator.py</code> — generates realistic energy grid telemetry with injectable attack scenarios.</p>
+      <div class="code-label">simulator/scada_simulator.py — skeleton</div>
+      <div class="code-block">
+<span class="cmd">import</span> random, time, json
+<span class="cmd">from</span> datetime <span class="cmd">import</span> datetime
+<span class="cmd">from</span> dataclasses <span class="cmd">import</span> dataclass
+
+NORMAL_VOLTAGE_RANGE = (218, 242)   <span class="comment"># 230V ±5%</span>
+NORMAL_FREQUENCY_RANGE = (49.8, 50.2)
+NORMAL_CURRENT_RANGE = (10, 100)
+
+<span class="cmd">class</span> SCADASimulator:
+    <span class="cmd">def</span> generate_normal_reading(self):
+        <span class="cmd">return</span> {
+            <span class="string">"timestamp"</span>: datetime.utcnow().isoformat(),
+            <span class="string">"node_id"</span>: f<span class="string">"SUBSTATION_{random.randint(1,10):03d}"</span>,
+            <span class="string">"voltage"</span>: random.uniform(*NORMAL_VOLTAGE_RANGE),
+            <span class="string">"frequency"</span>: random.uniform(*NORMAL_FREQUENCY_RANGE),
+            <span class="string">"current"</span>: random.uniform(*NORMAL_CURRENT_RANGE),
+            <span class="string">"access_log"</span>: [],
+            <span class="string">"command_log"</span>: [],
+            <span class="string">"status"</span>: <span class="string">"NORMAL"</span>
+        }
+    
+    <span class="cmd">def</span> inject_attack(self, attack_type: str):
+        <span class="comment"># attack_type: "ransomware"|"unauthorized_access"|"ddos"|"data_exfiltration"</span>
+        reading = self.generate_normal_reading()
+        <span class="cmd">if</span> attack_type == <span class="string">"ransomware"</span>:
+            reading[<span class="string">"voltage"</span>] = random.uniform(180, 200)  <span class="comment"># Voltage spike</span>
+            reading[<span class="string">"command_log"</span>] = [<span class="string">"ENCRYPT_FILES"</span>, <span class="string">"DISABLE_BACKUP"</span>]
+            reading[<span class="string">"status"</span>] = <span class="string">"ANOMALY"</span>
+        <span class="comment"># Add other attack types...</span>
+        <span class="cmd">return</span> reading
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">6.2</span>
+      <span class="step-title">Wire MITRE ATT&CK ICS API</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>MITRE ATT&CK for ICS is completely free and public. No API key required.</p>
+      <div class="code-label">tools/mitre_lookup.py — skeleton</div>
+      <div class="code-block">
+<span class="cmd">import</span> requests
+
+MITRE_ICS_URL = <span class="string">"https://attack.mitre.org/api/v1/techniques"</span>
+
+<span class="cmd">def</span> lookup_mitre_technique(anomaly_type: str) -> dict:
+    <span class="string">"""Query MITRE ATT&CK ICS for matching techniques"""</span>
+    
+    <span class="comment"># Map anomaly types to MITRE ICS tactic categories</span>
+    TACTIC_MAP = {
+        <span class="string">"ransomware"</span>: <span class="string">"inhibit-response-function"</span>,
+        <span class="string">"unauthorized_access"</span>: <span class="string">"initial-access"</span>,
+        <span class="string">"ddos"</span>: <span class="string">"impact"</span>,
+        <span class="string">"data_exfiltration"</span>: <span class="string">"collection"</span>
+    }
+    
+    tactic = TACTIC_MAP.get(anomaly_type, <span class="string">"impact"</span>)
+    
+    <span class="comment"># Fetch from MITRE STIX data (also available at github.com/mitre/cti)</span>
+    response = requests.get(
+        <span class="string">f"https://raw.githubusercontent.com/mitre/cti/master/ics-attack/ics-attack.json"</span>
+    )
+    <span class="comment"># Parse and filter relevant techniques...</span>
+    <span class="cmd">return</span> {<span class="string">"techniques"</span>: [], <span class="string">"tactic"</span>: tactic, <span class="string">"confidence"</span>: 0.85}
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">6.3</span>
+      <span class="step-title">Wire NVD CVE API</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <p>NVD (National Vulnerability Database) is free. Get API key at <strong>https://nvd.nist.gov/developers/request-an-api-key</strong> for higher rate limits.</p>
+      <div class="code-label">tools/cve_lookup.py — skeleton</div>
+      <div class="code-block">
+<span class="cmd">import</span> requests, os
+
+NVD_BASE_URL = <span class="string">"https://services.nvd.nist.gov/rest/json/cves/2.0"</span>
+
+<span class="cmd">def</span> lookup_cve(attack_type: str, affected_system: str = <span class="string">"SCADA"</span>) -> dict:
+    <span class="string">"""Search NVD for CVEs matching the attack type"""</span>
+    
+    params = {
+        <span class="string">"keywordSearch"</span>: f<span class="string">"{attack_type} {affected_system} ICS"</span>,
+        <span class="string">"resultsPerPage"</span>: 5,
+        <span class="string">"cvssV3Severity"</span>: <span class="string">"HIGH"</span>
+    }
+    
+    headers = {}
+    <span class="cmd">if</span> os.getenv(<span class="string">"NVD_API_KEY"</span>):
+        headers[<span class="string">"apiKey"</span>] = os.getenv(<span class="string">"NVD_API_KEY"</span>)
+    
+    response = requests.get(NVD_BASE_URL, params=params, headers=headers)
+    data = response.json()
+    
+    cves = [v[<span class="string">"cve"</span>][<span class="string">"id"</span>] <span class="cmd">for</span> v <span class="cmd">in</span> data.get(<span class="string">"vulnerabilities"</span>, [])]
+    <span class="cmd">return</span> {<span class="string">"cves"</span>: cves, <span class="string">"total_found"</span>: data.get(<span class="string">"totalResults"</span>, 0)}
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 7 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">07</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 07</div>
+      <div class="phase-title">GCP Secret Manager — Secure All Keys</div>
+    </div>
+  </div>
+  <div class="phase-desc">Store all API keys in Secret Manager. This is both a security requirement and a judging signal.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">7.1</span>
+      <span class="step-title">Store All Secrets in Secret Manager</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Create and store Phoenix API key</span>
+<span class="cmd">echo -n "your_phoenix_api_key" | gcloud secrets create PHOENIX_API_KEY \
+  --data-file=- --replication-policy=automatic</span>
+
+<span class="comment"># Create and store NVD API key</span>
+<span class="cmd">echo -n "your_nvd_api_key" | gcloud secrets create NVD_API_KEY \
+  --data-file=- --replication-policy=automatic</span>
+
+<span class="comment"># Verify secrets are stored</span>
+<span class="cmd">gcloud secrets list</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">7.2</span>
+      <span class="step-title">Create Secret Reader Utility</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-label">Add to tools/ or a config module</div>
+      <div class="code-block">
+<span class="cmd">from</span> google.cloud <span class="cmd">import</span> secretmanager
+<span class="cmd">import</span> os
+
+<span class="cmd">def</span> get_secret(secret_id: str) -> str:
+    <span class="string">"""Retrieve secret from GCP Secret Manager"""</span>
+    client = secretmanager.SecretManagerServiceClient()
+    project = os.getenv(<span class="string">"GOOGLE_CLOUD_PROJECT"</span>)
+    name = f<span class="string">"projects/{project}/secrets/{secret_id}/versions/latest"</span>
+    response = client.access_secret_version(request={<span class="string">"name"</span>: name})
+    <span class="cmd">return</span> response.payload.data.decode(<span class="string">"UTF-8"</span>)
+
+<span class="comment"># Usage in any module:</span>
+<span class="comment"># phoenix_key = get_secret("PHOENIX_API_KEY")</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 8 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">08</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 08</div>
+      <div class="phase-title">Frontend Dashboard — FastAPI + WebSocket</div>
+    </div>
+  </div>
+  <div class="phase-desc">Build the real-time dashboard. Judges interact with this directly.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">8.1</span>
+      <span class="step-title">Setup FastAPI Application</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-label">frontend/main.py — skeleton</div>
+      <div class="code-block">
+<span class="cmd">from</span> fastapi <span class="cmd">import</span> FastAPI, WebSocket
+<span class="cmd">from</span> fastapi.staticfiles <span class="cmd">import</span> StaticFiles
+<span class="cmd">from</span> fastapi.responses <span class="cmd">import</span> HTMLResponse
+<span class="cmd">import</span> asyncio
+
+app = FastAPI(title=<span class="string">"GridGuard Dashboard"</span>)
+app.mount(<span class="string">"/static"</span>, StaticFiles(directory=<span class="string">"frontend/static"</span>), name=<span class="string">"static"</span>)
+
+<span class="comment"># Serve dashboard</span>
+@app.get(<span class="string">"/"</span>)
+<span class="cmd">async def</span> dashboard():
+    <span class="cmd">with</span> open(<span class="string">"frontend/static/index.html"</span>) <span class="cmd">as</span> f:
+        <span class="cmd">return</span> HTMLResponse(f.read())
+
+<span class="comment"># WebSocket for real-time threat updates</span>
+@app.websocket(<span class="string">"/ws/threats"</span>)
+<span class="cmd">async def</span> threat_stream(websocket: WebSocket):
+    <span class="cmd">await</span> websocket.accept()
+    <span class="cmd">while True</span>:
+        <span class="comment"># Push live threat data to frontend</span>
+        threat_data = get_latest_threats()
+        <span class="cmd">await</span> websocket.send_json(threat_data)
+        <span class="cmd">await</span> asyncio.sleep(2)
+
+<span class="comment"># Human approval endpoint</span>
+@app.post(<span class="string">"/api/approve/{incident_id}"</span>)
+<span class="cmd">async def</span> approve_response(incident_id: str, approved: bool):
+    <span class="comment"># Signal the waiting response agent</span>
+    <span class="cmd">return</span> {<span class="string">"status"</span>: <span class="string">"approved"</span> <span class="cmd">if</span> approved <span class="cmd">else</span> <span class="string">"rejected"</span>}
+
+<span class="comment"># API to trigger attack scenario (for demo)</span>
+@app.post(<span class="string">"/api/inject-attack/{attack_type}"</span>)
+<span class="cmd">async def</span> inject_attack(attack_type: str):
+    <span class="comment"># Triggers simulator to inject attack scenario</span>
+    <span class="cmd">return</span> {<span class="string">"injected"</span>: attack_type}
+      </div>
+      <div class="code-block">
+<span class="comment"># Test dashboard locally</span>
+<span class="cmd">uvicorn frontend.main:app --reload --port 8080</span>
+<span class="comment"># Open http://localhost:8080</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 9 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">09</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 09</div>
+      <div class="phase-title">Deploy to Cloud Run — Get Your Hosted URL</div>
+    </div>
+  </div>
+  <div class="phase-desc">Deploy everything to Cloud Run. This gives you the hosted URL required for submission.</div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">9.1</span>
+      <span class="step-title">Create Dockerfile</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-label">deploy/Dockerfile</div>
+      <div class="code-block">
+FROM python:3.11-slim
+
+WORKDIR /app
+
+<span class="comment"># Install Node.js for Phoenix MCP server</span>
+RUN apt-get update && apt-get install -y nodejs npm curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+<span class="comment"># Expose port for Cloud Run</span>
+EXPOSE 8080
+
+<span class="comment"># Start FastAPI dashboard</span>
+CMD ["uvicorn", "frontend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">9.2</span>
+      <span class="step-title">Deploy to Cloud Run</span>
+      <span class="step-badge badge-green">Required for Submission</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="comment"># Set region</span>
+<span class="cmd">gcloud config set run/region us-central1</span>
+
+<span class="comment"># Deploy directly from source (Cloud Run builds container automatically)</span>
+<span class="cmd">gcloud run deploy gridguard \
+  --source . \
+  --platform managed \
+  --allow-unauthenticated \
+  --port 8080 \
+  --memory 2Gi \
+  --cpu 2 \
+  --set-env-vars GOOGLE_CLOUD_PROJECT=gridguard-agent-2026 \
+  --set-env-vars GOOGLE_CLOUD_REGION=us-central1</span>
+
+<span class="comment"># After deploy — get your URL</span>
+<span class="cmd">gcloud run services describe gridguard --format="value(status.url)"</span>
+<span class="comment"># OUTPUT: https://gridguard-xxxx-uc.a.run.app  ← This is your submission URL</span>
+      </div>
+      <div class="note note-success">
+        <strong>Save This URL</strong>
+        This is the hosted URL you submit to Devpost. Test it works from a different device before submitting.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">9.3</span>
+      <span class="step-title">Deploy Agent Runtime to Agent Builder</span>
+      <span class="step-badge badge-green">Required</span>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+<span class="cmd">import</span> vertexai
+<span class="cmd">from</span> agents.orchestrator <span class="cmd">import</span> gridguard_pipeline
+
+vertexai.init(project=<span class="string">"gridguard-agent-2026"</span>, location=<span class="string">"us-central1"</span>)
+client = vertexai.Client()
+
+<span class="comment"># Deploy agent to Agent Runtime</span>
+remote_agent = client.agent_engines.create(
+    agent=gridguard_pipeline,
+    config={
+        <span class="string">"requirements"</span>: [<span class="string">"google-cloud-aiplatform[agent_engines,adk]>=1.112"</span>],
+        <span class="string">"staging_bucket"</span>: <span class="string">"gs://gridguard-staging"</span>
+    }
+)
+
+<span class="cmd">print</span>(f<span class="string">"Agent deployed: {remote_agent.resource_name}"</span>)
+      </div>
+      <div class="note note-warn">
+        <strong>Create Staging Bucket First</strong>
+        gcloud storage buckets create gs://gridguard-staging --location=us-central1
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" data-label="PHASE BOUNDARY">
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PHASE 10 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-label">
+    <div class="phase-num">10</div>
+    <div class="phase-info">
+      <div class="phase-tag">Phase 10</div>
+      <div class="phase-title">Final Checklist Before Submission</div>
+    </div>
+  </div>
+  <div class="phase-desc">Every item below must be checked before recording demo or submitting.</div>
+
+  <div class="step info">
+    <div class="step-header">
+      <span class="step-num">10.1</span>
+      <span class="step-title">Technical Verification Checklist</span>
+      <span class="step-badge badge-blue">Run This Before Demo</span>
+    </div>
+    <div class="step-body">
+      <ul class="checklist">
+        <li>Agent pipeline runs end-to-end: <span>detect → investigate → respond</span> without errors</li>
+        <li>Phoenix dashboard shows traces at <span>app.phoenix.arize.com</span></li>
+        <li>Hallucination evaluator fires on at least <span>one test scenario</span></li>
+        <li>Human approval gate <span>intercepts CRITICAL threats</span> and waits for input</li>
+        <li>All 4 attack scenarios work: <span>ransomware, unauthorized_access, ddos, exfiltration</span></li>
+        <li>Cloud Run URL is <span>live and accessible</span> from external network</li>
+        <li>Secret Manager stores all API keys — <span>no hardcoded keys anywhere in code</span></li>
+        <li>MITRE ATT&CK lookup returns <span>real techniques</span> for each attack type</li>
+        <li>NVD CVE lookup returns <span>real CVEs</span></li>
+        <li>Incident report is generated <span>in plain English</span> after each incident</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step info">
+    <div class="step-header">
+      <span class="step-num">10.2</span>
+      <span class="step-title">Submission Checklist</span>
+      <span class="step-badge badge-blue">Required for Devpost</span>
+    </div>
+    <div class="step-body">
+      <ul class="checklist">
+        <li>GitHub repo is <span>public</span> with Apache 2.0 LICENSE file visible in About section</li>
+        <li>README.md has <span>setup instructions, architecture diagram, demo video link</span></li>
+        <li>Demo video is <span>under 3 minutes</span>, uploaded to YouTube or Vimeo (public)</li>
+        <li>Demo video shows <span>agent working live</span>, not slides or mockups</li>
+        <li>Devpost submission has <span>hosted URL + repo URL + video URL</span></li>
+        <li>Selected <span>Arize track</span> on submission form</li>
+        <li>Team members all added to <span>Devpost project</span></li>
+        <li>Text description covers: <span>features, tech used, data sources, learnings</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note note-danger">
+    <strong>Single Most Common Failure Reason</strong>
+    Demo works locally but fails on Cloud Run URL. Always test the deployed URL from a completely different device and network before recording the demo video. Cloud Run cold starts can cause 10-30 second delays — use min-instances=1 flag to prevent this: --min-instances=1
+  </div>
+
+  <div class="note note-success">
+    <strong>You Are Ready To Build</strong>
+    Follow phases in order. Do not skip verification steps. Allocate 40% of time to Phase 05 (Arize). The judges from Arize will probe the observability integration harder than anything else.
+  </div>
+</div>
+
+</body>
+</html>

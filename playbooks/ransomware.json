@@ -1,0 +1,82 @@
+{
+  "name": "Ransomware Response Playbook",
+  "version": "1.0.0",
+  "attack_type": "ransomware",
+  "description": "Immediate containment and recovery procedure for ransomware attack on SCADA node",
+  "severity_threshold": "CRITICAL",
+  "requires_approval": true,
+  "estimated_duration_minutes": 45,
+  "actions": [
+    {
+      "step": 1,
+      "action": "isolate_node",
+      "target": "affected_node",
+      "method": "network_acl",
+      "description": "Immediately isolate the compromised node from the SCADA network to prevent lateral movement",
+      "timeout_seconds": 30,
+      "critical": true
+    },
+    {
+      "step": 2,
+      "action": "block_ip",
+      "target": "c2_server_ip",
+      "method": "firewall_rule",
+      "description": "Block the identified Command and Control server IP at perimeter firewall",
+      "timeout_seconds": 15,
+      "critical": true
+    },
+    {
+      "step": 3,
+      "action": "capture_forensics",
+      "target": "affected_node_memory",
+      "method": "memory_dump",
+      "description": "Capture volatile memory from affected node before any remediation to preserve forensic evidence",
+      "timeout_seconds": 120,
+      "critical": false
+    },
+    {
+      "step": 4,
+      "action": "enable_backup_isolation",
+      "target": "backup_systems",
+      "method": "network_segmentation",
+      "description": "Isolate backup systems to prevent ransomware from encrypting backups",
+      "timeout_seconds": 30,
+      "critical": true
+    },
+    {
+      "step": 5,
+      "action": "alert_operator",
+      "target": "soc_team",
+      "method": "email_sms_pager",
+      "description": "Dispatch critical alert to SOC team and facility management with incident details",
+      "timeout_seconds": 10,
+      "critical": false
+    },
+    {
+      "step": 6,
+      "action": "notify_soc",
+      "target": "incident_response_team",
+      "method": "ticketing_system",
+      "description": "Open P1 incident ticket in SOC ticketing system with full forensic context",
+      "timeout_seconds": 15,
+      "critical": false
+    }
+  ],
+  "escalation_path": [
+    "facility_security_manager",
+    "ciso",
+    "national_grid_cert"
+  ],
+  "recovery_steps": [
+    "Verify backup integrity before any restore operation",
+    "Rebuild compromised node from verified golden image",
+    "Rotate all credentials associated with affected systems",
+    "Scan all adjacent nodes for indicators of compromise",
+    "Update firewall rules based on observed C2 infrastructure",
+    "Submit malware samples to threat intelligence sharing platforms",
+    "Conduct post-incident review within 48 hours"
+  ],
+  "notify_targets": ["soc@gridguard.internal", "ciso@gridguard.internal"],
+  "mitre_tactics": ["inhibit-response-function", "impact"],
+  "regulatory_notifications": ["NERC CIP-008", "ICS-CERT"]
+}

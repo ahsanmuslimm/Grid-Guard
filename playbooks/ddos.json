@@ -1,0 +1,70 @@
+{
+  "name": "DDoS / Denial of Service Response Playbook",
+  "version": "1.0.0",
+  "attack_type": "ddos",
+  "description": "Traffic mitigation and service restoration procedure for DDoS attack on grid network",
+  "severity_threshold": "HIGH",
+  "requires_approval": false,
+  "estimated_duration_minutes": 15,
+  "actions": [
+    {
+      "step": 1,
+      "action": "rate_limit",
+      "target": "external_traffic",
+      "method": "network_acl",
+      "description": "Apply rate limiting to all external traffic ingress — cap to 10% of normal capacity",
+      "timeout_seconds": 10,
+      "critical": true
+    },
+    {
+      "step": 2,
+      "action": "quarantine_traffic",
+      "target": "flood_source_ips",
+      "method": "bgp_blackhole",
+      "description": "Blackhole route all identified flood source IPs via BGP null routing",
+      "timeout_seconds": 15,
+      "critical": true
+    },
+    {
+      "step": 3,
+      "action": "isolate_node",
+      "target": "overloaded_hmi_interface",
+      "method": "network_acl",
+      "description": "Temporarily isolate overloaded HMI interface to prevent buffer overflow exploitation",
+      "timeout_seconds": 20,
+      "critical": false
+    },
+    {
+      "step": 4,
+      "action": "alert_operator",
+      "target": "network_ops",
+      "method": "pager_phone",
+      "description": "Immediately alert network operations team to activate DDoS mitigation procedures",
+      "timeout_seconds": 10,
+      "critical": false
+    },
+    {
+      "step": 5,
+      "action": "notify_soc",
+      "target": "upstream_isp",
+      "method": "noc_hotline",
+      "description": "Contact upstream ISP to activate scrubbing center and upstream traffic filtering",
+      "timeout_seconds": 30,
+      "critical": false
+    }
+  ],
+  "escalation_path": [
+    "network_operations_lead",
+    "facilities_manager"
+  ],
+  "recovery_steps": [
+    "Gradually restore external traffic once attack subsides (monitor for 30min)",
+    "Analyze traffic patterns to identify attack vectors for permanent mitigation",
+    "Review and update BGP filtering rules",
+    "Consider dedicated DDoS protection service if attacks recur",
+    "Test SCADA system integrity after restoration"
+  ],
+  "notify_targets": ["netops@gridguard.internal", "soc@gridguard.internal"],
+  "mitre_tactics": ["impact"],
+  "regulatory_notifications": ["NERC CIP-009"]
+}

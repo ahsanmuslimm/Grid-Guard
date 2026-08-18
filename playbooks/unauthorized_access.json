@@ -1,0 +1,70 @@
+{
+  "name": "Unauthorized Access Response Playbook",
+  "version": "1.0.0",
+  "attack_type": "unauthorized_access",
+  "description": "Containment procedure for unauthorized access attempt on SCADA infrastructure",
+  "severity_threshold": "HIGH",
+  "requires_approval": true,
+  "estimated_duration_minutes": 20,
+  "actions": [
+    {
+      "step": 1,
+      "action": "block_ip",
+      "target": "attacker_source_ip",
+      "method": "firewall_rule",
+      "description": "Block attacker's source IP at perimeter and internal firewalls immediately",
+      "timeout_seconds": 15,
+      "critical": true
+    },
+    {
+      "step": 2,
+      "action": "disable_account",
+      "target": "compromised_account",
+      "method": "active_directory",
+      "description": "Disable the compromised user account and revoke all active sessions",
+      "timeout_seconds": 10,
+      "critical": true
+    },
+    {
+      "step": 3,
+      "action": "revoke_tokens",
+      "target": "compromised_account_tokens",
+      "method": "token_service",
+      "description": "Revoke all API tokens and session tokens associated with compromised account",
+      "timeout_seconds": 10,
+      "critical": true
+    },
+    {
+      "step": 4,
+      "action": "capture_forensics",
+      "target": "access_logs",
+      "method": "log_archive",
+      "description": "Archive all access logs from the compromised session for forensic investigation",
+      "timeout_seconds": 30,
+      "critical": false
+    },
+    {
+      "step": 5,
+      "action": "alert_operator",
+      "target": "security_team",
+      "method": "email_sms",
+      "description": "Alert security team with attacker IP, account affected, and timeline of access",
+      "timeout_seconds": 10,
+      "critical": false
+    }
+  ],
+  "escalation_path": [
+    "security_operations_lead",
+    "ciso"
+  ],
+  "recovery_steps": [
+    "Audit all actions taken by compromised account during breach window",
+    "Reset passwords for affected account and all accounts with similar access",
+    "Review and tighten access control policies for SCADA systems",
+    "Enable MFA if not already present on all privileged accounts",
+    "Conduct threat hunt for lateral movement from compromised account"
+  ],
+  "notify_targets": ["security@gridguard.internal"],
+  "mitre_tactics": ["initial-access", "credential-access"],
+  "regulatory_notifications": ["NERC CIP-007"]
+}

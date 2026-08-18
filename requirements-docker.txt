@@ -1,0 +1,37 @@
+# GridGuard — Full requirements for Docker / Cloud Run (Python 3.11)
+# Use this in the Dockerfile. All packages compatible with Python 3.11.
+
+# Google Cloud ADK + Agent Runtime
+google-cloud-aiplatform[agent_engines,adk]>=1.112
+google-adk>=0.5.0
+
+# Arize Phoenix — Full package (requires Python <=3.13)
+arize-phoenix>=8.0.0
+arize-phoenix-otel>=0.6.0
+arize-phoenix-client>=2.7.0
+openinference-instrumentation-google-genai>=0.3.0
+openinference-instrumentation-vertexai>=0.4.0
+opentelemetry-sdk>=1.28.0
+opentelemetry-exporter-otlp>=1.28.0
+
+# Data + Threat Intelligence
+requests>=2.32.0
+httpx>=0.27.0
+pandas>=2.2.0
+numpy>=2.0.0
+
+# SCADA Simulator
+pydantic>=2.8.0
+
+# GCP Secret Manager
+google-cloud-secret-manager>=2.20.0
+
+# Web Framework (Frontend Backend)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=13.0
+
+# Utilities
+python-dotenv>=1.0.0
+rich>=13.7.0
+structlog>=24.4.0

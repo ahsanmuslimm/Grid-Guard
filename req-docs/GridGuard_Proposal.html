@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridGuard — Project Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1318;
+    --bg3: #111920;
+    --border: #1e2d3a;
+    --accent: #00e5ff;
+    --accent2: #ff3d57;
+    --accent3: #f0b429;
+    --green: #00e676;
+    --text: #c8d8e4;
+    --text-dim: #5a7a8a;
+    --text-bright: #eaf4ff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+    margin-bottom: 56px;
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -48px; left: -32px; right: -32px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent3));
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: 88px;
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 16px;
+    letter-spacing: 1px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .meta-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-size: 36px;
+    letter-spacing: 2px;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 32px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .section-intro {
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-left: 16px;
+  }
+
+  p {
+    color: var(--text);
+    margin-bottom: 16px;
+    font-weight: 300;
+    padding-left: 16px;
+  }
+
+  p strong {
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  /* STAT CARDS */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent2);
+    padding: 20px;
+  }
+
+  .stat-number {
+    font-family: var(--display);
+    font-size: 48px;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-number.green { color: var(--green); }
+  .stat-number.yellow { color: var(--accent3); }
+  .stat-number.blue { color: var(--accent); }
+
+  .stat-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--bg3);
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  tr:hover td { background: var(--bg2); }
+
+  td:first-child {
+    color: var(--text-bright);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .badge-red { background: rgba(255,61,87,0.15); color: var(--accent2); border: 1px solid rgba(255,61,87,0.3); }
+  .badge-blue { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+  .badge-green { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .badge-yellow { background: rgba(240,180,41,0.1); color: var(--accent3); border: 1px solid rgba(240,180,41,0.2); }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+
+  .flow-step {
+    flex: 1;
+    min-width: 120px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 16px 12px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-step::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 16px;
+    z-index: 2;
+    background: var(--bg);
+    padding: 0 2px;
+  }
+
+  .flow-step:last-child::after { display: none; }
+
+  .flow-step-num {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--border);
+    line-height: 1;
+  }
+
+  .flow-step-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 4px 0;
+  }
+
+  .flow-step-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* ARCH BLOCK */
+  .arch {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin: 24px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .arch-layer {
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .arch-layer-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .arch-layer.data { border-color: rgba(240,180,41,0.4); }
+  .arch-layer.data .arch-layer-label { color: var(--accent3); }
+
+  .arch-layer.agent { border-color: rgba(0,229,255,0.4); }
+  .arch-layer.agent .arch-layer-label { color: var(--accent); }
+
+  .arch-layer.arize { border-color: rgba(0,230,118,0.4); }
+  .arch-layer.arize .arch-layer-label { color: var(--green); }
+
+  .arch-layer.frontend { border-color: rgba(255,61,87,0.4); }
+  .arch-layer.frontend .arch-layer-label { color: var(--accent2); }
+
+  .arch-components {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-comp {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 20px;
+    margin: 4px 0;
+  }
+
+  /* FEATURE LIST */
+  .feature-list {
+    list-style: none;
+    margin: 16px 0 16px 16px;
+  }
+
+  .feature-list li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .feature-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .feature-list li strong {
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  /* JUDGE TABLE */
+  .judge-row td:nth-child(2) {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--green);
+    line-height: 1;
+    padding-top: 14px;
+  }
+
+  /* CRITICAL BOX */
+  .critical-box {
+    border: 1px solid rgba(255,61,87,0.4);
+    background: rgba(255,61,87,0.05);
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .critical-box-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .critical-box ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .critical-box ul li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--mono);
+  }
+
+  .critical-box ul li::before {
+    content: '!';
+    position: absolute;
+    left: 0;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* SUCCESS BOX */
+  .success-box {
+    border: 1px solid rgba(0,230,118,0.3);
+    background: rgba(0,230,118,0.04);
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .success-box-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .success-box ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .success-box ul li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--mono);
+  }
+
+  .success-box ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* TEAM TABLE */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .team-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .team-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .team-name {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+
+  .team-tasks {
+    list-style: none;
+  }
+
+  .team-tasks li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 4px 0;
+    font-family: var(--mono);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-brand {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .footer-brand span { color: var(--accent); }
+
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  @media print {
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="tag">Google Cloud Rapid Agent Hackathon — Arize Track</span>
+  <h1>GRID<span>GUARD</span></h1>
+  <div class="subtitle">Autonomous Cyber Threat Response Agent for Global Energy Infrastructure</div>
+  <div class="meta-row">
+    <div class="meta-item">
+      <span class="meta-label">Track</span>
+      <span class="meta-value">Arize Phoenix MCP</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Domain</span>
+      <span class="meta-value">Energy + Cybersecurity</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Agent Type</span>
+      <span class="meta-value">Autonomous Response Agent</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Platform</span>
+      <span class="meta-value">GCP Agent Builder + Cloud Run</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Status</span>
+      <span class="meta-value" style="color:var(--accent2)">Pre-Build Proposal</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 1: THE PROBLEM -->
+<div class="section">
+  <div class="section-intro">Section 01 — The Problem</div>
+  <h2>The Pain Point</h2>
+
+  <p>
+    Energy infrastructure — power grids, oil pipelines, water treatment facilities — is the backbone of civilization. 
+    <strong>It is also the most attacked critical sector on the planet.</strong> What changed in the last 5 years is not just 
+    the volume of attacks but the nature of them. Attackers now use AI for reconnaissance, lateral movement, 
+    and evasion. Defenders are still using manual monitoring and legacy SIEM tools designed for IT — not OT.
+  </p>
+
+  <p>
+    The core problem is a <strong>three-sided gap</strong>: attacks are faster, infrastructure is more connected, 
+    and defenders have less budget and fewer AI-native tools than ever. This is not a theoretical risk. 
+    It is a documented, verified, escalating global crisis.
+  </p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-number">4×</div>
+      <div class="stat-desc">Increase in weekly cyberattacks on utilities since 2020 (Tech Monitor / PV Magazine, 2025)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:var(--accent3)">10%</div>
+      <div class="stat-desc">Of all global cyber incidents now target the energy sector — ranked #4 most attacked (ENISA 2025)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:var(--accent)">67%</div>
+      <div class="stat-desc">Increase in SCADA/OT vulnerability points since 2021 due to IT/OT convergence (Market Growth Reports)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:var(--green)">68%</div>
+      <div class="stat-desc">Of utility firms globally plan to upgrade cybersecurity 2025–2028 — but haven't yet</div>
+    </div>
+  </div>
+
+  <p>
+    Pakistan's 2023 national blackout caused <strong>over PKR 100 billion in economic damage</strong> in a single event. 
+    The root cause was a cascading grid failure — the exact scenario a targeted cyberattack would deliberately engineer. 
+    Similar events have hit Poland (December 2025), Spain, Portugal, and Eastern Europe (2025). 
+    <strong>This is not a future threat. It is a present operational reality.</strong>
+  </p>
+
+  <p>
+    The specific gap GridGuard targets: <strong>there is no affordable, AI-native, explainable autonomous response 
+    system for OT/SCADA environments.</strong> Enterprise solutions like Claroty or Dragos cost $500K+ annually. 
+    Emerging market energy operators, municipal grids, and mid-size utilities globally have nothing.
+  </p>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 2: THE SOLUTION -->
+<div class="section">
+  <div class="section-intro">Section 02 — The Solution</div>
+  <h2>What GridGuard Is</h2>
+
+  <p>
+    GridGuard is an <strong>autonomous multi-step AI agent</strong> built on Google Cloud Agent Builder and powered by Gemini, 
+    that detects, investigates, and responds to cyber threats targeting energy infrastructure — 
+    with complete observability and explainability of every AI decision via Arize Phoenix.
+  </p>
+
+  <p>
+    The critical differentiator is not just detection. It is <strong>trust</strong>. 
+    When an AI agent makes a security decision — isolate this node, block this IP, escalate this alert — 
+    an energy operator needs to know: <em>why did it decide that? Was the reasoning sound? Did it hallucinate?</em> 
+    Arize Phoenix answers exactly these questions. GridGuard is the first system to combine 
+    autonomous OT threat response with LLM-level observability and evaluation.
+  </p>
+
+  <div class="success-box">
+    <div class="success-box-title">One Line Pitch</div>
+    <ul>
+      <li>Energy grids are being attacked by AI. The AI defending them can't be trusted or explained. GridGuard fixes both.</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 3: HOW IT WORKS -->
+<div class="section">
+  <div class="section-intro">Section 03 — Agent Workflow</div>
+  <h2>How The Agent Works</h2>
+
+  <p>GridGuard operates as a <strong>6-step autonomous mission pipeline</strong>. Each step is traced, evaluated, and logged by Arize Phoenix in real time.</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-step-num">01</div>
+      <div class="flow-step-title">Trigger</div>
+      <div class="flow-step-desc">Ingests SCADA telemetry + public threat intel feeds. Detects anomalous patterns.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">02</div>
+      <div class="flow-step-title">Investigate</div>
+      <div class="flow-step-desc">Agent queries multiple sources. Correlates signatures. Determines real threat vs false positive.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">03</div>
+      <div class="flow-step-title">Decide</div>
+      <div class="flow-step-desc">Classifies severity. Selects response playbook. Routes Critical to human approval gate.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">04</div>
+      <div class="flow-step-title">Respond</div>
+      <div class="flow-step-desc">Executes automated response: isolate node, block IP, alert operator, generate ticket.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">05</div>
+      <div class="flow-step-title">Explain</div>
+      <div class="flow-step-desc">Generates plain-English incident report. Shows reasoning chain for every decision.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">06</div>
+      <div class="flow-step-title">Learn</div>
+      <div class="flow-step-desc">Arize evaluates response quality. Flags hallucinations. Feeds back into improvement loop.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 4: FEATURES -->
+<div class="section">
+  <div class="section-intro">Section 04 — Feature Set</div>
+  <h2>Key Features</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Description</th>
+        <th>Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Real-Time Anomaly Detection</td>
+        <td>Monitors SCADA telemetry streams for voltage spikes, unauthorized command sequences, and unusual access patterns using Gemini reasoning</td>
+        <td><span class="badge badge-red">Core</span></td>
+      </tr>
+      <tr>
+        <td>Multi-Source Threat Correlation</td>
+        <td>Cross-references detected anomalies against MITRE ATT&CK for ICS, CVE database, and public threat intelligence feeds automatically</td>
+        <td><span class="badge badge-red">Core</span></td>
+      </tr>
+      <tr>
+        <td>Autonomous Response Execution</td>
+        <td>Executes pre-defined playbooks: node isolation, IP blocking, operator alerts, incident ticket generation — without human intervention for non-critical threats</td>
+        <td><span class="badge badge-red">Core</span></td>
+      </tr>
+      <tr>
+        <td>Human-in-the-Loop Gate</td>
+        <td>Critical severity threats require human approval before response execution. Operator sees full AI reasoning before approving or overriding</td>
+        <td><span class="badge badge-blue">Safety</span></td>
+      </tr>
+      <tr>
+        <td>Full Arize Phoenix Tracing</td>
+        <td>Every agent decision step — detection, investigation, classification, response selection — is traced end-to-end in Phoenix with latency, token usage, and confidence</td>
+        <td><span class="badge badge-green">Observability</span></td>
+      </tr>
+      <tr>
+        <td>Hallucination Detection</td>
+        <td>Arize evaluators flag when the agent fabricates threat data, invents CVE references, or makes decisions without grounding in actual telemetry</td>
+        <td><span class="badge badge-green">Observability</span></td>
+      </tr>
+      <tr>
+        <td>Response Quality Evaluation</td>
+        <td>Arize evaluates whether the chosen response playbook was appropriate for the detected threat type — scores improve over sessions</td>
+        <td><span class="badge badge-green">Observability</span></td>
+      </tr>
+      <tr>
+        <td>Plain-English Incident Reports</td>
+        <td>Auto-generated incident reports in non-technical language — what happened, why the agent responded this way, what was the outcome</td>
+        <td><span class="badge badge-yellow">UX</span></td>
+      </tr>
+      <tr>
+        <td>Real-Time Threat Dashboard</td>
+        <td>Live visualization of active threats, agent decision timeline, Arize observability panel, and system health status</td>
+        <td><span class="badge badge-yellow">UX</span></td>
+      </tr>
+      <tr>
+        <td>Session Replay</td>
+        <td>Full replay of any past threat investigation — judges and operators can step through every agent action and see its reasoning at each point</td>
+        <td><span class="badge badge-yellow">UX</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 5: ARCHITECTURE -->
+<div class="section">
+  <div class="section-intro">Section 05 — Technical Architecture</div>
+  <h2>System Architecture</h2>
+
+  <div class="arch">
+    <div class="arch-layer data">
+      <div class="arch-layer-label">Layer 1 — Data Sources</div>
+      <div class="arch-components">
+        <div class="arch-comp">SCADA Simulator (Python)</div>
+        <div class="arch-comp">MITRE ATT&CK ICS Feed</div>
+        <div class="arch-comp">CVE Database (NVD API)</div>
+        <div class="arch-comp">Public Threat Intel Feeds</div>
+        <div class="arch-comp">Synthetic Attack Scenarios</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer agent">
+      <div class="arch-layer-label">Layer 2 — Google Cloud Agent Builder (Gemini)</div>
+      <div class="arch-components">
+        <div class="arch-comp">Detection Sub-Agent</div>
+        <div class="arch-comp">Investigation Sub-Agent</div>
+        <div class="arch-comp">Response Sub-Agent</div>
+        <div class="arch-comp">Human Approval Gate</div>
+        <div class="arch-comp">Playbook Engine</div>
+        <div class="arch-comp">GCP Secret Manager</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer arize">
+      <div class="arch-layer-label">Layer 3 — Arize Phoenix MCP (Observability Core)</div>
+      <div class="arch-components">
+        <div class="arch-comp">Full Decision Tracing</div>
+        <div class="arch-comp">Hallucination Evaluators</div>
+        <div class="arch-comp">Response Quality Scoring</div>
+        <div class="arch-comp">Session Replay</div>
+        <div class="arch-comp">Dataset Management</div>
+        <div class="arch-comp">Experiment Tracking</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer frontend">
+      <div class="arch-layer-label">Layer 4 — Frontend Dashboard (Cloud Run)</div>
+      <div class="arch-components">
+        <div class="arch-comp">Real-Time Threat Map</div>
+        <div class="arch-comp">Agent Decision Timeline</div>
+        <div class="arch-comp">Arize Observability Panel</div>
+        <div class="arch-comp">Incident Report Viewer</div>
+        <div class="arch-comp">Human Approval Interface</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 6: JUDGING -->
+<div class="section">
+  <div class="section-intro">Section 06 — Judging Strategy</div>
+  <h2>Judging Criteria Coverage</h2>
+
+  <p>Every feature and design decision in GridGuard maps directly to judging criteria. Nothing is built without a judging reason.</p>
+
+  <table class="judge-row">
+    <thead>
+      <tr>
+        <th>Criteria</th>
+        <th>Score</th>
+        <th>Why GridGuard Wins This</th>
+        <th>What Must Be Demonstrated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Technical Implementation</td>
+        <td>9/10</td>
+        <td>Multi-step agent pipeline. Deep Arize MCP integration as core — not decoration. GCP Agent Builder + Cloud Run + Secret Manager. Real data ingestion from public feeds.</td>
+        <td>Live agent completing full Detect→Investigate→Respond cycle. Arize traces visible. Code repo clean and documented.</td>
+      </tr>
+      <tr>
+        <td>Design</td>
+        <td>8/10</td>
+        <td>Security dashboards are inherently visual. Real-time threat map + decision timeline + Arize panel creates a compelling 3-panel interface judges can interact with.</td>
+        <td>Dashboard must be live and responsive. Human approval gate must be demonstrable. No broken UI elements during demo.</td>
+      </tr>
+      <tr>
+        <td>Potential Impact</td>
+        <td>10/10</td>
+        <td>Energy sector is #4 most attacked globally. 68% of utilities plan to upgrade. Zero affordable AI-native solution exists. GridGuard fills a verified $500M+ market gap.</td>
+        <td>Open with real attack statistics. End with "this works on any grid, globally, at near-zero infrastructure cost."</td>
+      </tr>
+      <tr>
+        <td>Quality of Idea</td>
+        <td>10/10</td>
+        <td>No existing public project combines OT/SCADA autonomous response + LLM observability. Arize judges will immediately recognize the novelty of applying Phoenix to security decision trust.</td>
+        <td>Articulate the trust problem clearly. Show hallucination detection firing on a real example. This is your killer demo moment.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="critical-box">
+    <div class="critical-box-title">Critical — What Will Disqualify You</div>
+    <ul>
+      <li>Broken demo during judging — every flow must work reliably, not just once</li>
+      <li>Arize integration that is surface-level — judges from Arize will probe this deeply</li>
+      <li>Agent that only answers questions — it must execute actions, not just respond with text</li>
+      <li>No human-in-the-loop for critical threats — safety is a judging signal, not optional</li>
+      <li>Repo without documentation — judges must be able to run it themselves</li>
+      <li>Video longer than 3 minutes — only first 3 minutes are evaluated per rules</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 7: WHAT TO BUILD -->
+<div class="section">
+  <div class="section-intro">Section 07 — Development Mandate</div>
+  <h2>What Must Be Built</h2>
+
+  <p>This is the non-negotiable build list. Every item here is required for a competitive submission.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Priority</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>SCADA Telemetry Simulator</td>
+        <td>Python script generating realistic SCADA data streams with injectable attack scenarios (voltage anomalies, unauthorized commands, access pattern deviations)</td>
+        <td><span class="badge badge-red">P0 — Critical</span></td>
+      </tr>
+      <tr>
+        <td>GCP Agent Builder Pipeline</td>
+        <td>Multi-step agent with 3 sub-agents (Detection, Investigation, Response) orchestrated on Agent Builder using Gemini as reasoning engine</td>
+        <td><span class="badge badge-red">P0 — Critical</span></td>
+      </tr>
+      <tr>
+        <td>Arize Phoenix Integration</td>
+        <td>Full MCP server integration. Trace every agent step. Configure hallucination evaluators. Build response quality scoring. Enable session replay.</td>
+        <td><span class="badge badge-red">P0 — Critical</span></td>
+      </tr>
+      <tr>
+        <td>Threat Intelligence Connector</td>
+        <td>Live connectors to MITRE ATT&CK ICS (public API) and NVD CVE database. Agent queries these during investigation step.</td>
+        <td><span class="badge badge-red">P0 — Critical</span></td>
+      </tr>
+      <tr>
+        <td>Response Playbook Engine</td>
+        <td>Structured playbooks for each threat type (ransomware, unauthorized access, DDoS, data exfiltration). Agent selects and executes appropriate playbook.</td>
+        <td><span class="badge badge-red">P0 — Critical</span></td>
+      </tr>
+      <tr>
+        <td>Human Approval Gate</td>
+        <td>UI component that intercepts Critical severity threats and requires operator approval before response execution. Shows full AI reasoning.</td>
+        <td><span class="badge badge-blue">P1 — Important</span></td>
+      </tr>
+      <tr>
+        <td>Frontend Dashboard</td>
+        <td>Real-time threat map, decision timeline, Arize observability panel, incident report viewer. Hosted on Cloud Run.</td>
+        <td><span class="badge badge-blue">P1 — Important</span></td>
+      </tr>
+      <tr>
+        <td>Incident Report Generator</td>
+        <td>Auto-generated plain-English reports per incident. What happened, what the agent did, why, outcome.</td>
+        <td><span class="badge badge-blue">P1 — Important</span></td>
+      </tr>
+      <tr>
+        <td>GCP Secret Manager Setup</td>
+        <td>All API keys (Arize, threat feeds, GCP services) stored and retrieved via Secret Manager. No hardcoded credentials anywhere.</td>
+        <td><span class="badge badge-blue">P1 — Important</span></td>
+      </tr>
+      <tr>
+        <td>Public GitHub Repo + Docs</td>
+        <td>Clean repo with open source license (Apache 2.0 recommended), README with setup instructions, architecture diagram, demo video link.</td>
+        <td><span class="badge badge-yellow">P2 — Required for submission</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 8: TEAM -->
+<div class="section">
+  <div class="section-intro">Section 08 — Team Assignments</div>
+  <h2>Who Builds What</h2>
+
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-role">MLOps Engineer</div>
+      <div class="team-name">ARIZE LEAD</div>
+      <ul class="team-tasks">
+        <li>Arize Phoenix MCP integration</li>
+        <li>LLM evaluation pipeline</li>
+        <li>Hallucination detection setup</li>
+        <li>Response quality scoring</li>
+        <li>Session replay configuration</li>
+      </ul>
+    </div>
+    <div class="team-card">
+      <div class="team-role">DevOps Engineer</div>
+      <div class="team-name">GCP LEAD</div>
+      <ul class="team-tasks">
+        <li>GCP Agent Builder setup</li>
+        <li>Cloud Run deployment</li>
+        <li>Secret Manager configuration</li>
+        <li>CI/CD pipeline</li>
+        <li>Hosted URL delivery</li>
+      </ul>
+    </div>
+    <div class="team-card">
+      <div class="team-role">Systems Engineer</div>
+      <div class="team-name">DATA LEAD</div>
+      <ul class="team-tasks">
+        <li>SCADA telemetry simulator</li>
+        <li>Synthetic attack scenario generator</li>
+        <li>Data pipeline architecture</li>
+        <li>MITRE ATT&CK ICS connector</li>
+        <li>NVD CVE API integration</li>
+      </ul>
+    </div>
+    <div class="team-card">
+      <div class="team-role">Cyber Security Expert</div>
+      <div class="team-name">THREAT LEAD</div>
+      <ul class="team-tasks">
+        <li>Attack scenario design</li>
+        <li>Response playbook authoring</li>
+        <li>MITRE ICS technique mapping</li>
+        <li>Threat classification logic</li>
+        <li>Demo attack scripting</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 9: DEMO SCRIPT -->
+<div class="section">
+  <div class="section-intro">Section 09 — Demo Strategy</div>
+  <h2>The 3-Minute Demo Script</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>What Happens</th>
+        <th>Judging Signal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>0:00 – 0:25</td>
+        <td>Open with 3 real statistics on energy sector attacks. One line: "The AI defending these grids can't be trusted or explained. GridGuard fixes both."</td>
+        <td>Impact. Sets stakes immediately.</td>
+      </tr>
+      <tr>
+        <td>0:25 – 0:45</td>
+        <td>Show live dashboard. Inject a simulated SCADA attack (ransomware scenario). Show anomaly appearing in real time on threat map.</td>
+        <td>Technical implementation. It actually works.</td>
+      </tr>
+      <tr>
+        <td>0:45 – 1:30</td>
+        <td>Agent autonomously investigates: queries MITRE ATT&CK, cross-references CVE, classifies as Critical. Human approval gate fires. Operator approves. Agent executes response playbook.</td>
+        <td>Multi-step mission. Human-in-the-loop safety.</td>
+      </tr>
+      <tr>
+        <td>1:30 – 2:20</td>
+        <td>Switch to Arize Phoenix dashboard. Show full trace of every decision. Point to hallucination flag on one step. Show response quality score. Show session replay.</td>
+        <td>Arize integration depth. This is your knockout moment.</td>
+      </tr>
+      <tr>
+        <td>2:20 – 2:45</td>
+        <td>Show auto-generated incident report. Plain English. Show it works on a second attack type (different scenario, different playbook).</td>
+        <td>Design quality. Versatility.</td>
+      </tr>
+      <tr>
+        <td>2:45 – 3:00</td>
+        <td>"GridGuard works on any energy grid globally. Zero additional infrastructure. Open source. Deployable in under an hour." End on impact statement.</td>
+        <td>Potential impact. Memorability.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+
+<!-- SECTION 10: RISKS -->
+<div class="section">
+  <div class="section-intro">Section 10 — Risk Register</div>
+  <h2>Risks To Manage</h2>
+
+  <div class="critical-box">
+    <div class="critical-box-title">Risks That Will Kill The Submission</div>
+    <ul>
+      <li>Demo fails during recording — rehearse the exact demo flow minimum 5 times before recording</li>
+      <li>Arize Phoenix MCP not deeply integrated — allocate 40% of total build time to Arize alone</li>
+      <li>Agent only chatting, not acting — every response must trigger a tool call or action</li>
+      <li>No real data — synthetic SCADA data must look realistic, not obviously fabricated</li>
+      <li>GCP costs spiraling — set billing alerts immediately, use free tier where possible</li>
+    </ul>
+  </div>
+
+  <div class="success-box">
+    <div class="success-box-title">What Will Guarantee A Strong Submission</div>
+    <ul>
+      <li>Arize traces showing real hallucination detection — no other team will have this</li>
+      <li>Human approval gate that actually intercepts and waits — shows safety thinking</li>
+      <li>Clean GitHub repo with working setup instructions — judges test this</li>
+      <li>Dashboard that loads fast and looks professional — first impression matters</li>
+      <li>Demo rehearsed until it runs flawlessly — confidence is visible on camera</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">GRID<span>GUARD</span></div>
+  <div class="footer-meta">
+    Google Cloud Rapid Agent Hackathon<br>
+    Arize Track — Pre-Build Proposal<br>
+    Confidential — Team Use Only
+  </div>
+</div>
+
+</body>
+</html>

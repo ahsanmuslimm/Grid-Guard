@@ -1,0 +1,81 @@
+{
+  "name": "Data Exfiltration Response Playbook",
+  "version": "1.0.0",
+  "attack_type": "data_exfiltration",
+  "description": "Containment and data breach response for SCADA configuration and process data exfiltration",
+  "severity_threshold": "HIGH",
+  "requires_approval": false,
+  "estimated_duration_minutes": 30,
+  "actions": [
+    {
+      "step": 1,
+      "action": "block_ip",
+      "target": "exfiltration_destination_ip",
+      "method": "firewall_rule",
+      "description": "Block the destination IP receiving the exfiltrated data at perimeter firewall",
+      "timeout_seconds": 10,
+      "critical": true
+    },
+    {
+      "step": 2,
+      "action": "quarantine_traffic",
+      "target": "suspicious_outbound_connections",
+      "method": "deep_packet_inspection",
+      "description": "Quarantine all suspicious outbound connections for forensic inspection",
+      "timeout_seconds": 20,
+      "critical": true
+    },
+    {
+      "step": 3,
+      "action": "revoke_tokens",
+      "target": "service_account_tokens",
+      "method": "token_service",
+      "description": "Revoke all tokens for compromised service account to halt ongoing exfiltration",
+      "timeout_seconds": 10,
+      "critical": true
+    },
+    {
+      "step": 4,
+      "action": "capture_forensics",
+      "target": "network_flow_logs",
+      "method": "netflow_archive",
+      "description": "Archive complete network flow logs for the breach window to establish data scope",
+      "timeout_seconds": 60,
+      "critical": false
+    },
+    {
+      "step": 5,
+      "action": "alert_operator",
+      "target": "ciso_legal_team",
+      "method": "secure_email_phone",
+      "description": "Notify CISO and legal team — potential regulatory notification requirement (GDPR/NERC CIP)",
+      "timeout_seconds": 10,
+      "critical": false
+    },
+    {
+      "step": 6,
+      "action": "notify_soc",
+      "target": "incident_response_team",
+      "method": "ticketing_system",
+      "description": "Open data breach incident in SOC with full scope assessment and regulatory timeline",
+      "timeout_seconds": 15,
+      "critical": false
+    }
+  ],
+  "escalation_path": [
+    "ciso",
+    "legal_counsel",
+    "executive_team"
+  ],
+  "recovery_steps": [
+    "Determine exact scope of exfiltrated data (type, volume, sensitivity)",
+    "Assess regulatory notification requirements (72hr clock for GDPR if applicable)",
+    "Rotate all credentials and secrets potentially exposed in exfiltrated configs",
+    "Patch the access vector used for exfiltration",
+    "Implement data loss prevention (DLP) controls to prevent recurrence",
+    "Commission external forensics if scope is unclear"
+  ],
+  "notify_targets": ["ciso@gridguard.internal", "legal@gridguard.internal", "soc@gridguard.internal"],
+  "mitre_tactics": ["collection", "exfiltration"],
+  "regulatory_notifications": ["NERC CIP-011", "ICS-CERT", "GDPR_if_applicable"]
+}

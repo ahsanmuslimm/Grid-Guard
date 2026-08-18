@@ -1,0 +1,89 @@
+"""
+GridGuard — Application Entry Point
+Initializes all systems and starts the FastAPI dashboard server.
+Import order matters: Phoenix MUST be initialized before any agent runs.
+"""
+
+import os
+import sys
+from dotenv import load_dotenv
+
+# Load environment variables FIRST (.env for local dev)
+load_dotenv()
+
+# In production — pull secrets from GCP Secret Manager and inject into env
+# This runs before Phoenix init so the API key is available
+def _inject_gcp_secrets() -> None:
+    """Pull secrets from Secret Manager and set as env vars (production only)."""
+    if os.getenv("GRIDGUARD_ENV", "development") == "development":
+        return
+    try:
+        from tools.secrets import get_secret_optional
+        for secret_id in ("PHOENIX_API_KEY", "NVD_API_KEY"):
+            if not os.getenv(secret_id):  # Don't overwrite if already set via --set-env-vars
+                value = get_secret_optional(secret_id)
+                if value:
+                    os.environ[secret_id] = value
+                    print(f"✓ Secret Manager: {secret_id} loaded")
+    except Exception as e:
+        print(f"⚠ Secret Manager unavailable: {e} — using env vars")
+
+_inject_gcp_secrets()
+
+# Initialize Arize Phoenix tracing BEFORE importing agents
+# This ensures all agent calls are captured from the first run
+from observability.phoenix_setup import tracer  # noqa: E402 — intentional import order
+
+# Now import everything else
+import uvicorn  # noqa: E402
+from frontend.main import app  # noqa: E402
+from simulator.scada_simulator import simulator  # noqa: E402
+from tools.scada_reader import set_telemetry  # noqa: E402
+from frontend.state import push_threat_event, update_node_states  # noqa: E402
+
+
+def on_telemetry_tick(reading: dict) -> None:
+    """
+    Callback fired by simulator every 2 seconds.
+    Updates the SCADA reader (for agent consumption) and the dashboard state.
+    """
+    # Feed latest reading to the detection agent's tools
+    set_telemetry(reading, attack_type=reading.get("attack_type"))
+
+    # Push to dashboard WebSocket state
+    push_threat_event(reading)
+
+    # Update node map
+    states = simulator.get_node_states()
+    update_node_states(states)
+
+
+def startup() -> None:
+    """Initialize all GridGuard systems."""
+    print("\n" + "=" * 60)
+    print("  GRIDGUARD - Autonomous Energy Grid Threat Response")
+    print("  Google Cloud Rapid Agent Hackathon - Arize Track")
+    print("=" * 60 + "\n")
+
+    # Register simulator callback and start
+    simulator.register_callback(on_telemetry_tick)
+    simulator.start()
+    print("[OK] SCADA Simulator started - 12 nodes live\n")
+
+    env = os.getenv("GRIDGUARD_ENV", "development")
+    port = int(os.getenv("PORT", "8080"))
+    print(f"[OK] Environment: {env}")
+    print(f"[OK] Dashboard: http://localhost:{port}")
+    print(f"[OK] Phoenix:   {os.getenv('PHOENIX_BASE_URL', 'https://app.phoenix.arize.com')}/projects/gridguard\n")
+
+
+if __name__ == "__main__":
+    startup()
+    port = int(os.getenv("PORT", "8080"))
+    uvicorn.run(
+        "frontend.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=os.getenv("GRIDGUARD_ENV") == "development",
+        log_level=os.getenv("LOG_LEVEL", "info").lower(),
+    )

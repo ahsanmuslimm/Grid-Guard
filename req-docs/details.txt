@@ -1,0 +1,106 @@
+GridGuard — Full Evaluation & Professional Build Plan
+What We're Building
+A production-grade autonomous cybersecurity agent for energy infrastructure, deployed on GCP Cloud Run, with deep Arize Phoenix observability. The system must:
+
+Run a 3-agent ADK pipeline (detect → investigate → respond)
+Integrate real MITRE ATT&CK ICS + NVD CVE data
+Show every AI decision traced in Arize Phoenix with hallucination detection
+Expose a live dashboard with WebSocket real-time updates
+Gate critical threats behind human approval
+Be publicly accessible via Cloud Run URL
+
+Phase 2 + 3 Complete ✅
+What was verified working:
+
+Simulator: normal voltage 229V, ransomware attack drops to 186V ✓
+All 4 playbooks load (6, 5, 5, 6 actions each) ✓
+All tools importable with zero errors ✓
+Frontend state module works ✓
+ADK pipeline: gridguard_pipeline → [detection_agent, investigation_agent, response_agent] ✓
+All Python imports: ADK, Phoenix OTEL, FastAPI, Pydantic, Secret Manager SDK ✓
+Important note on Python version: You're on Python 3.14 locally. The full arize-phoenix server package can't install here (it has a sqlean-py dependency that tops out at 3.13). This is not a problem — the Dockerfile uses Python 3.11-slim where it installs cleanly, and you have the arize-phoenix-client + OTEL packages for local dev tracing.
+
+Phase 5 + 8 Complete ✅
+Here's what was built and verified:
+
+Phase 5 — Arize Phoenix (every tool instrumented):
+
+scada_reader.py — 4 tools each wrapped with tracer.start_as_current_span(), attributes: node_id, voltage, deviation_pct, anomaly_detected, severity
+mitre_lookup.py — span: investigation.mitre_lookup with input.value, output.value, technique IDs, source, confidence
+cve_lookup.py — span: investigation.cve_lookup with input.value, output.value, CVE IDs, source, error tracking
+phoenix_setup.py — initializes OTel tracer provider, auto-instruments GoogleGenAI, graceful degradation if API key missing
+evaluators.py — HallucinationEvaluator + RelevanceEvaluator configured with Gemini eval model, get_phoenix_stats() for dashboard panel
+Phase 8 — Full Dashboard:
+
+main.py
+ — 16 FastAPI routes: WebSocket /ws/threats, /api/inject-attack/{type}, /api/approve/{id}, /api/escalate/{id}, /api/reports, /api/phoenix-stats, /health
+index.html
+ — 3-panel layout: grid map + demo controls + Phoenix panel | timeline | telemetry + reports
+style.css
+ — full dark industrial theme, node pulse animations, approval modal, report modal
+app.js
+ — WebSocket client, real-time node state updates, approval gate with countdown timer, attack injection, report viewer
+Next: Phase 4 verification (test with real Gemini) and Phase 7 (Secret Manager + .env setup). You need your Arize Phoenix API key and GCP project active. Once those are set in .env, run python main.py and you'll have a fully live demo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHASE 2 COMMANDS
+
+GCP Commands — Run These Now (Phase 2)
+While I'm working on Phase 4 (agents are already built) and Phase 5, run these in your terminal in order:
+
+Step 1 — Authenticate:
+
+gcloud auth login
+gcloud auth application-default login
+Step 2 — Create project + enable APIs:
+
+gcloud projects create gridguard-agent-2026 --name="GridGuard"
+gcloud config set project gridguard-agent-2026
+gcloud services enable aiplatform.googleapis.com run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com artifactregistry.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com logging.googleapis.com monitoring.googleapis.com
+Step 3 — Service account:
+
+gcloud iam service-accounts create gridguard-sa --display-name="GridGuard Service Account"
+gcloud projects add-iam-policy-binding gridguard-agent-2026 --member="serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com" --role="roles/aiplatform.user"
+gcloud projects add-iam-policy-binding gridguard-agent-2026 --member="serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com" --role="roles/secretmanager.secretAccessor"
+gcloud projects add-iam-policy-binding gridguard-agent-2026 --member="serviceAccount:gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com" --role="roles/run.invoker"
+mkdir credentials
+gcloud iam service-accounts keys create ./credentials/gcp-key.json --iam-account="gridguard-sa@gridguard-agent-2026.iam.gserviceaccount.com"
+Step 4 — Billing alert + bucket:
+
+gcloud storage buckets create gs://gridguard-staging-gridguard-agent-2026 --location=us-central1
+Set the $50 billing alert manually in the GCP Console → Billing → Budgets & Alerts.
+
+
+
+
+
+
+
+
+Status audit:
+
+✅ Phase 1 — Environment (done)
+✅ Phase 2 — GCP commands (provided, you run those)
+✅ Phase 3 — Project skeleton (done)
+✅ Phase 4 — ADK agents (done)
+✅ Phase 5 — Phoenix integration (done, needs API key in .env)
+✅ Phase 6 — Data layer (done)
+🔲 Phase 7 — Secret Manager wiring (.env not created, secrets util exists but not wired into startup)
+✅ Phase 8 — Frontend dashboard (done)
+🔲 Phase 9 — Cloud Run deploy (Dockerfile exists, needs --source . build context fix)
+🔲 Phase 10 — README polish + submission checklist

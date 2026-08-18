@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridGuard — Complete Project Sequence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=Literata:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #04080f;
+  --surface:   #080e18;
+  --surface2:  #0c1420;
+  --border:    #142030;
+  --border2:   #1e3048;
+  --green:     #00ffa3;
+  --red:       #ff3e5e;
+  --yellow:    #ffc94d;
+  --blue:      #38b6ff;
+  --purple:    #a855f7;
+  --dim:       #2a4060;
+  --muted:     #4a6880;
+  --body:      #8aa8c0;
+  --bright:    #d8eeff;
+  --white:     #f0f8ff;
+  --mono:      'Syne Mono', monospace;
+  --sans:      'Syne', sans-serif;
+  --serif:     'Literata', serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── SCAN LINE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,255,163,0.012) 2px,
+    rgba(0,255,163,0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── COVER PAGE ── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.cover::after {
+  content: 'GRIDGUARD';
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-family: var(--sans);
+  font-size: 180px;
+  font-weight: 800;
+  color: rgba(0,255,163,0.03);
+  letter-spacing: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cover-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cover-eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--green);
+}
+
+.cover-title {
+  font-family: var(--sans);
+  font-size: clamp(64px, 10vw, 120px);
+  font-weight: 800;
+  line-height: 0.9;
+  color: var(--white);
+  letter-spacing: -2px;
+  margin-bottom: 8px;
+}
+
+.cover-title span { color: var(--green); }
+
+.cover-subtitle {
+  font-family: var(--sans);
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 48px;
+  max-width: 600px;
+}
+
+.cover-meta {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.cover-meta-item { display: flex; flex-direction: column; gap: 6px; }
+
+.cover-meta-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.cover-meta-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* ── WRAPPER ── */
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 64px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SECTION ── */
+.section {
+  padding: 80px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+.section-num {
+  font-family: var(--sans);
+  font-size: 80px;
+  font-weight: 800;
+  color: var(--border2);
+  line-height: 1;
+  letter-spacing: -3px;
+  padding-top: 8px;
+}
+
+.section-info {}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: var(--sans);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+}
+
+.section-desc {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 12px;
+  font-style: italic;
+  max-width: 700px;
+}
+
+/* ── PHASE CARD ── */
+.phase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.phase-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.phase-card:hover { border-color: var(--border2); }
+
+.phase-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.phase-card.green::before { background: var(--green); }
+.phase-card.blue::before { background: var(--blue); }
+.phase-card.yellow::before { background: var(--yellow); }
+.phase-card.red::before { background: var(--red); }
+.phase-card.purple::before { background: var(--purple); }
+
+.phase-card-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.phase-card-title {
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--bright);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.phase-card-desc {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.phase-card-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border: 1px solid;
+  display: inline-block;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.tag-green { color: var(--green); border-color: rgba(0,255,163,0.3); background: rgba(0,255,163,0.06); }
+.tag-blue { color: var(--blue); border-color: rgba(56,182,255,0.3); background: rgba(56,182,255,0.06); }
+.tag-yellow { color: var(--yellow); border-color: rgba(255,201,77,0.3); background: rgba(255,201,77,0.06); }
+.tag-red { color: var(--red); border-color: rgba(255,62,94,0.3); background: rgba(255,62,94,0.06); }
+.tag-purple { color: var(--purple); border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.06); }
+
+/* ── BUILD LIST ── */
+.build-list {
+  list-style: none;
+  margin: 16px 0;
+}
+
+.build-list li {
+  padding: 10px 0 10px 28px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+.build-list li:last-child { border-bottom: none; }
+
+.build-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 12px;
+  top: 11px;
+}
+
+.build-list li strong {
+  color: var(--bright);
+  font-style: normal;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── EXPECT BOX ── */
+.expect-box {
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  padding: 24px 28px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.expect-box::before {
+  content: 'EXPECTED OUTPUT';
+  position: absolute;
+  top: -1px; left: 20px;
+  transform: translateY(-50%);
+  background: var(--surface2);
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--green);
+  letter-spacing: 2px;
+}
+
+.expect-box p {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.expect-box p:last-child { margin-bottom: 0; }
+
+.expect-box p strong {
+  color: var(--bright);
+  font-family: var(--sans);
+  font-weight: 700;
+}
+
+/* ── TERMINAL BLOCK ── */
+.terminal {
+  background: #020509;
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--green);
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+  overflow-x: auto;
+}
+
+.terminal .prompt { color: var(--green); }
+.terminal .out { color: var(--muted); }
+.terminal .success { color: var(--green); }
+.terminal .warn { color: var(--yellow); }
+.terminal .err { color: var(--red); }
+.terminal .info { color: var(--blue); }
+
+/* ── FEATURE TABLE ── */
+.feat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.feat-table th {
+  background: var(--surface2);
+  color: var(--green);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border2);
+}
+
+.feat-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.feat-table tr:hover td { background: var(--surface); }
+
+.feat-table td:first-child {
+  color: var(--bright);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.feat-table td:nth-child(2) {
+  color: var(--body);
+  font-family: var(--serif);
+  font-size: 13px;
+}
+
+/* ── PHASE SEQUENCE ── */
+.phase-sequence {
+  position: relative;
+  padding-left: 40px;
+  margin: 32px 0;
+}
+
+.phase-sequence::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--green), var(--blue), var(--purple), var(--red));
+}
+
+.phase-seq-item {
+  position: relative;
+  margin-bottom: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px 28px;
+}
+
+.phase-seq-item::before {
+  content: '';
+  position: absolute;
+  left: -34px;
+  top: 28px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  background: var(--bg);
+}
+
+.phase-seq-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.phase-seq-title {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.phase-seq-what {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+.phase-seq-what:first-of-type { margin-top: 0; }
+
+.phase-seq-items {
+  list-style: none;
+}
+
+.phase-seq-items li {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--body);
+  padding: 4px 0 4px 18px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.phase-seq-items li:last-child { border-bottom: none; }
+
+.phase-seq-items li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-size: 10px;
+  top: 6px;
+}
+
+.phase-seq-expect {
+  margin-top: 16px;
+  background: rgba(0,255,163,0.04);
+  border: 1px solid rgba(0,255,163,0.15);
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+  line-height: 1.6;
+}
+
+.phase-seq-expect::before {
+  content: '✓ EXPECT: ';
+  font-weight: 700;
+}
+
+/* ── FINAL RESULT SHOWCASE ── */
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.result-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.result-desc {
+  font-family: var(--serif);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── SCORE TABLE ── */
+.score-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 60px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.score-label {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bright);
+}
+
+.score-bar-wrap {
+  background: var(--surface2);
+  height: 6px;
+  position: relative;
+}
+
+.score-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+}
+
+.score-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  text-align: right;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  padding: 20px 24px;
+  margin: 24px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  border-left: 3px solid;
+}
+
+.callout-warn {
+  border-color: var(--yellow);
+  background: rgba(255,201,77,0.05);
+  color: var(--yellow);
+}
+
+.callout-success {
+  border-color: var(--green);
+  background: rgba(0,255,163,0.05);
+  color: var(--green);
+}
+
+.callout-danger {
+  border-color: var(--red);
+  background: rgba(255,62,94,0.05);
+  color: var(--red);
+}
+
+.callout-info {
+  border-color: var(--blue);
+  background: rgba(56,182,255,0.05);
+  color: var(--blue);
+}
+
+.callout strong {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+/* ── MILESTONE ── */
+.milestones {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.milestone {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.milestone-phase {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.milestone-title {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bright);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.milestone-output {
+  font-family: var(--serif);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ── DIVIDER ── */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ── FOOTER ── */
+.footer {
+  padding: 48px 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: gap;
+}
+
+.footer-brand {
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--dim);
+  letter-spacing: -1px;
+}
+
+.footer-brand span { color: var(--green); }
+
+.footer-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--yellow);
+  padding: 1px 6px;
+}
+
+p { margin-bottom: 12px; }
+p:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  .wrap { padding: 0 24px; }
+  .cover { padding: 48px 24px; }
+  .phase-grid { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr; }
+  .milestones { grid-template-columns: 1fr 1fr; }
+  .section-header { grid-template-columns: 48px 1fr; }
+  .section-num { font-size: 48px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     COVER
+════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="wrap">
+    <div class="cover-eyebrow">Google Cloud Rapid Agent Hackathon — Arize Track</div>
+    <div class="cover-title">GRID<span>GUARD</span></div>
+    <div class="cover-subtitle">Complete Project Sequence — What To Build, What To Expect, What You Will Deliver</div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Total Phases</span>
+        <span class="cover-meta-value">10 Phases</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Partner Track</span>
+        <span class="cover-meta-value">Arize Phoenix MCP</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Domain</span>
+        <span class="cover-meta-value">Energy Cybersecurity</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Agent Type</span>
+        <span class="cover-meta-value">Autonomous Response</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Deployment</span>
+        <span class="cover-meta-value">GCP Cloud Run</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 1 — THE FINAL RESULT
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-info">
+        <div class="section-label">Final Result</div>
+        <div class="section-title">What GridGuard Looks Like When Complete</div>
+        <div class="section-desc">The finished product judges will see, interact with, and score.</div>
+      </div>
+    </div>
+
+    <p style="font-family:var(--serif);font-size:15px;color:var(--body);max-width:800px;margin-bottom:32px;">
+      GridGuard is a <strong style="color:var(--white);font-family:var(--sans);">live, hosted web application</strong> accessible via a public URL on Google Cloud Run.
+      When a judge opens it, they see a real-time energy infrastructure security operations center.
+      The AI agent is running, watching for threats, and reacting — all transparently traced in Arize Phoenix.
+      Every decision the agent makes is visible, explainable, and auditable.
+    </p>
+
+    <div class="result-grid">
+      <div class="result-card">
+        <span class="result-icon">🖥️</span>
+        <div class="result-title">Live Threat Dashboard</div>
+        <div class="result-desc">Real-time map of energy grid nodes. Active threat indicators. Agent decision timeline. Color-coded severity levels updating live via WebSocket.</div>
+      </div>
+      <div class="result-card">
+        <span class="result-icon">🤖</span>
+        <div class="result-title">Autonomous Agent Pipeline</div>
+        <div class="result-desc">6-step pipeline running continuously: detect anomaly → investigate threat → classify severity → approve/execute response → generate report → log to Phoenix.</div>
+      </div>
+      <div class="result-card">
+        <span class="result-icon">🧠</span>
+        <div class="result-title">Arize Phoenix Observatory</div>
+        <div class="result-desc">Full trace of every AI decision. Hallucination detection firing. Response quality scores. Session replay. All visible in Phoenix dashboard linked from the app.</div>
+      </div>
+      <div class="result-card">
+        <span class="result-icon">🔐</span>
+        <div class="result-title">Human Approval Gate</div>
+        <div class="result-desc">Critical threats pause the agent and surface an approval card. Operator sees the full AI reasoning before choosing: Approve, Reject, or Escalate.</div>
+      </div>
+      <div class="result-card">
+        <span class="result-icon">📋</span>
+        <div class="result-title">Incident Report Generator</div>
+        <div class="result-desc">Every resolved incident produces a plain-English report: what happened, what the agent did, why, what CVEs were involved, outcome, and agent confidence score.</div>
+      </div>
+      <div class="result-card">
+        <span class="result-icon">⚡</span>
+        <div class="result-title">Attack Scenario Injector</div>
+        <div class="result-desc">Demo control panel to inject 4 attack types live during the demo video: ransomware, unauthorized access, DDoS, data exfiltration — triggering the full pipeline on demand.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-success">
+      <strong>One-Line Final Result</strong>
+      A judge opens https://gridguard-xxxx.run.app, clicks "Inject Ransomware Attack," watches the agent autonomously detect, investigate, request approval, respond, and explain — while seeing every AI decision traced live in Arize Phoenix. Total time from attack to resolved incident: under 90 seconds.
+    </div>
+
+    <!-- JUDGING SCORE PROJECTION -->
+    <div style="margin-top:40px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;">Projected Judging Score</div>
+
+      <div class="score-row">
+        <div class="score-label">Technical Implementation</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:90%"></div></div>
+        <div class="score-val">9/10</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Design & UX</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:85%"></div></div>
+        <div class="score-val">8/10</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Potential Impact</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:100%"></div></div>
+        <div class="score-val">10/10</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Quality of Idea</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:100%"></div></div>
+        <div class="score-val">10/10</div>
+      </div>
+      <div class="score-row" style="border-bottom:none;">
+        <div class="score-label" style="color:var(--green);">TOTAL</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:92%;background:linear-gradient(90deg,var(--green),var(--green))"></div></div>
+        <div class="score-val" style="font-size:18px;">37/40</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 2 — COMPLETE FEATURE LIST
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-info">
+        <div class="section-label">Complete Feature Set</div>
+        <div class="section-title">Every Feature GridGuard Contains</div>
+        <div class="section-desc">Categorized by layer. Every feature maps to a judging criterion.</div>
+      </div>
+    </div>
+
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>What It Does</th>
+          <th>Layer</th>
+          <th>Judging Criterion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SCADA Telemetry Simulator</td>
+          <td>Generates realistic energy grid data streams — voltage, frequency, current, access logs, command logs — with 4 injectable attack scenarios</td>
+          <td><span class="phase-card-tag tag-yellow">Data</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Anomaly Detection Agent</td>
+          <td>ADK sub-agent monitoring SCADA streams using Gemini reasoning. Detects voltage spikes, unauthorized commands, abnormal access patterns in real time</td>
+          <td><span class="phase-card-tag tag-green">Agent</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Threat Investigation Agent</td>
+          <td>Queries MITRE ATT&CK ICS and NVD CVE APIs to correlate detected anomalies against known attack signatures. Determines real threat vs false positive</td>
+          <td><span class="phase-card-tag tag-green">Agent</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Autonomous Response Agent</td>
+          <td>Selects and executes appropriate response playbook from 4 predefined scenarios. Generates isolation commands, block rules, operator alerts</td>
+          <td><span class="phase-card-tag tag-green">Agent</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>SequentialAgent Orchestrator</td>
+          <td>ADK SequentialAgent chaining detection → investigation → response using shared session state. Multi-step mission architecture required by hackathon</td>
+          <td><span class="phase-card-tag tag-green">Agent</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Human-in-the-Loop Approval Gate</td>
+          <td>CRITICAL threats halt agent pipeline and surface approval card in dashboard. Operator sees full AI reasoning chain before approving or rejecting response</td>
+          <td><span class="phase-card-tag tag-red">Safety</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Arize Phoenix Full Tracing</td>
+          <td>Every agent decision — detection query, MITRE lookup, CVE correlation, playbook selection — is traced end-to-end in Phoenix with latency, tokens, confidence</td>
+          <td><span class="phase-card-tag tag-purple">Observability</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Hallucination Detection</td>
+          <td>Arize evaluators flag when agent fabricates CVE references, invents MITRE techniques, or makes decisions without grounding in actual telemetry data</td>
+          <td><span class="phase-card-tag tag-purple">Observability</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Response Quality Evaluator</td>
+          <td>Scores whether chosen playbook was appropriate for detected threat type. Score improves across sessions as agent learns from evaluation feedback</td>
+          <td><span class="phase-card-tag tag-purple">Observability</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Session Replay</td>
+          <td>Full replay of any past threat investigation in Phoenix. Step through every agent action and see its reasoning at each decision point</td>
+          <td><span class="phase-card-tag tag-purple">Observability</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Real-Time Threat Map</td>
+          <td>Live visualization of grid nodes on dashboard. Active threat nodes pulse red. Agent activity shows as animated overlay. Updates via WebSocket every 2 seconds</td>
+          <td><span class="phase-card-tag tag-blue">Frontend</span></td>
+          <td><span class="phase-card-tag tag-yellow">Design</span></td>
+        </tr>
+        <tr>
+          <td>Agent Decision Timeline</td>
+          <td>Scrollable chronological feed of every agent action with timestamp, reasoning summary, confidence score, and outcome badge</td>
+          <td><span class="phase-card-tag tag-blue">Frontend</span></td>
+          <td><span class="phase-card-tag tag-yellow">Design</span></td>
+        </tr>
+        <tr>
+          <td>Arize Observability Panel</td>
+          <td>Embedded link panel showing live Phoenix trace count, hallucination flag count, average response quality score, and direct link to Phoenix dashboard</td>
+          <td><span class="phase-card-tag tag-blue">Frontend</span></td>
+          <td><span class="phase-card-tag tag-yellow">Design</span></td>
+        </tr>
+        <tr>
+          <td>Plain-English Incident Reports</td>
+          <td>Auto-generated report per incident: what happened, why agent responded this way, CVEs involved, MITRE techniques matched, outcome, agent confidence score</td>
+          <td><span class="phase-card-tag tag-blue">Frontend</span></td>
+          <td><span class="phase-card-tag tag-yellow">Design</span></td>
+        </tr>
+        <tr>
+          <td>Attack Scenario Injector (Demo Panel)</td>
+          <td>One-click injection of 4 attack types for live demo purposes. Triggers SCADA simulator to generate attack data and starts agent pipeline automatically</td>
+          <td><span class="phase-card-tag tag-blue">Frontend</span></td>
+          <td><span class="phase-card-tag tag-yellow">Design</span></td>
+        </tr>
+        <tr>
+          <td>MITRE ATT&CK ICS Integration</td>
+          <td>Live queries to MITRE's public ICS attack database. Maps detected anomalies to real ICS-specific tactics and techniques with links to MITRE docs</td>
+          <td><span class="phase-card-tag tag-yellow">Data</span></td>
+          <td><span class="phase-card-tag tag-red">Impact</span></td>
+        </tr>
+        <tr>
+          <td>NVD CVE Database Integration</td>
+          <td>Live queries to NIST National Vulnerability Database API. Returns real CVE IDs with severity scores for threat context during investigation step</td>
+          <td><span class="phase-card-tag tag-yellow">Data</span></td>
+          <td><span class="phase-card-tag tag-red">Impact</span></td>
+        </tr>
+        <tr>
+          <td>4 Response Playbooks</td>
+          <td>Structured JSON playbooks for ransomware, unauthorized access, DDoS, and data exfiltration. Each defines actions, escalation paths, and recovery steps</td>
+          <td><span class="phase-card-tag tag-yellow">Data</span></td>
+          <td><span class="phase-card-tag tag-red">Impact</span></td>
+        </tr>
+        <tr>
+          <td>GCP Secret Manager Integration</td>
+          <td>All API keys retrieved from Secret Manager at runtime. Zero hardcoded credentials anywhere in codebase. Production-grade security posture</td>
+          <td><span class="phase-card-tag tag-red">Security</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+        <tr>
+          <td>Cloud Run Deployment</td>
+          <td>Fully containerized deployment on Cloud Run. Auto-scales. Public HTTPS URL. No infrastructure management required. min-instances=1 prevents cold start</td>
+          <td><span class="phase-card-tag tag-red">Infra</span></td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 3 — PHASE BY PHASE SEQUENCE
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-info">
+        <div class="section-label">Build Sequence</div>
+        <div class="section-title">Every Phase — What To Build + What To Expect</div>
+        <div class="section-desc">Sequential. Do not skip phases. Every phase produces a verifiable output before moving forward.</div>
+      </div>
+    </div>
+
+    <div class="phase-sequence">
+
+      <!-- PHASE 1 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 01 — Prerequisites</div>
+        <div class="phase-seq-title">Install All Tools Locally</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Python 3.11</strong> — core runtime for all agent code</li>
+          <li><strong>Node.js 20+</strong> — mandatory for Arize Phoenix MCP server (runs via npx)</li>
+          <li><strong>gcloud CLI</strong> — deploy to GCP, manage APIs, create secrets</li>
+          <li><strong>Docker Desktop</strong> — local Phoenix deployment + container testing</li>
+          <li><strong>GitHub repo (public)</strong> — named "gridguard", Apache 2.0 license added immediately</li>
+          <li><strong>.gitignore</strong> — credentials/, .env, venv/ all excluded from day one</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Running <code>python3 --version</code> returns 3.11.x</li>
+          <li>Running <code>node --version</code> returns v20.x</li>
+          <li>Running <code>gcloud --version</code> returns SDK version</li>
+          <li>GitHub repo is public with LICENSE file visible in About section</li>
+        </ul>
+        <div class="phase-seq-expect">All 4 CLI tools verified working. Public repo created. Zero code written yet — only environment ready.</div>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 02 — GCP Project Setup</div>
+        <div class="phase-seq-title">Configure Google Cloud From Scratch</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>GCP Project</strong> named <code>gridguard-agent-2026</code> — free trial activated</li>
+          <li><strong>9 APIs enabled</strong> — aiplatform, run, cloudbuild, secretmanager, artifactregistry, resourcemanager, iam, logging, monitoring</li>
+          <li><strong>Service account</strong> <code>gridguard-sa</code> with aiplatform.user + secretmanager.secretAccessor + run.invoker roles</li>
+          <li><strong>Credentials JSON</strong> downloaded to <code>credentials/gcp-key.json</code> (gitignored)</li>
+          <li><strong>Application default credentials</strong> configured for local SDK access</li>
+          <li><strong>Billing alert at $50</strong> — prevents surprise charges during development</li>
+          <li><strong>Cloud Storage bucket</strong> <code>gs://gridguard-staging</code> for Agent Runtime deployment</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li><code>gcloud config get-value project</code> returns <code>gridguard-agent-2026</code></li>
+          <li>Vertex AI SDK connects: <code>vertexai.init()</code> runs without error</li>
+          <li>All 9 APIs show as enabled in GCP Console → APIs & Services</li>
+          <li>Billing alert configured and visible in GCP Console → Billing</li>
+        </ul>
+        <div class="phase-seq-expect">GCP project fully configured. All APIs enabled. Service account ready. Zero code deployed yet — only infrastructure ready.</div>
+      </div>
+
+      <!-- PHASE 3 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 03 — Python Environment + Project Structure</div>
+        <div class="phase-seq-title">Build The Codebase Skeleton</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Virtual environment</strong> <code>venv/</code> with Python 3.11 isolated</li>
+          <li><strong>requirements.txt</strong> with 20+ packages — ADK, Phoenix, FastAPI, instrumentation, data tools</li>
+          <li><strong>Complete folder structure</strong> — agents/, tools/, simulator/, playbooks/, observability/, frontend/, deploy/</li>
+          <li><strong>__init__.py</strong> files in every Python package folder</li>
+          <li><strong>.env file</strong> with all environment variable slots (no real keys yet)</li>
+          <li><strong>.env.example</strong> committed to repo as template for judges</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>All packages install without errors: <code>pip install -r requirements.txt</code></li>
+          <li><code>import google.adk</code> works inside venv</li>
+          <li><code>import phoenix</code> works inside venv</li>
+          <li>Full folder structure visible with all directories and __init__ files present</li>
+        </ul>
+        <div class="phase-seq-expect">Complete project skeleton ready. All imports resolve. Ready to write actual code into empty files.</div>
+      </div>
+
+      <!-- PHASE 4 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 04 — Google ADK Multi-Agent System</div>
+        <div class="phase-seq-title">Build The 3 Sub-Agents + Orchestrator</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Detection Agent</strong> — LlmAgent with Gemini 2.0 Flash, 4 SCADA monitoring tools, <code>output_key="detection_result"</code> writing to session state</li>
+          <li><strong>Investigation Agent</strong> — LlmAgent reading <code>{detection_result}</code> from state, MITRE + CVE tool calls, <code>output_key="investigation_result"</code></li>
+          <li><strong>Response Agent</strong> — LlmAgent reading both upstream results, playbook execution, human approval gate logic, report generation</li>
+          <li><strong>SequentialAgent Orchestrator</strong> — chains all 3 sub-agents in detection → investigation → response order</li>
+          <li><strong>InMemorySessionService + Runner</strong> — local test harness for pipeline execution</li>
+          <li><strong>ADK Web UI test</strong> — <code>adk web</code> command to inspect agent visually</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Running the pipeline locally produces: Detection result → Investigation result → Response result in sequence</li>
+          <li>ADK Web UI at localhost:8000 shows agent hierarchy: orchestrator → 3 sub-agents</li>
+          <li>Session state correctly passes data between sub-agents via output_key</li>
+          <li>No import errors, no runtime crashes on a basic "no anomaly" run</li>
+        </ul>
+        <div class="phase-seq-expect">Full agent pipeline running locally. 3 sub-agents chained. Data flows correctly through session state. No Arize integration yet — agents run blind.</div>
+      </div>
+
+      <!-- PHASE 5 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 05 — Arize Phoenix Integration</div>
+        <div class="phase-seq-title">Wire Observability Into Every Agent Decision</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Arize Phoenix Cloud account</strong> — free tier, project named "gridguard", API key retrieved</li>
+          <li><strong>Phoenix MCP server config</strong> — <code>mcp_config.json</code> with npx command, baseUrl, apiKey</li>
+          <li><strong>phoenix_setup.py</strong> — registers Phoenix as OTel tracer provider, instruments VertexAI and GoogleGenAI automatically</li>
+          <li><strong>Custom spans in every tool</strong> — each tool function wrapped with tracer.start_as_current_span() and meaningful attributes</li>
+          <li><strong>Hallucination evaluator</strong> — Phoenix HallucinationEvaluator configured with Gemini eval model</li>
+          <li><strong>Response quality evaluator</strong> — RelevanceEvaluator scoring playbook appropriateness</li>
+          <li><strong>Session replay</strong> — enabled via Phoenix dataset logging per incident</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Phoenix dashboard at app.phoenix.arize.com shows live traces for every agent run</li>
+          <li>Each agent step appears as a named span with attributes (input, output, confidence, latency)</li>
+          <li>Hallucination evaluator fires and flags at least one test scenario correctly</li>
+          <li>Response quality score appears on completed incident spans</li>
+          <li>Session replay reconstructable from Phoenix for any past incident</li>
+        </ul>
+        <div class="phase-seq-expect">Every agent decision is now fully observable. Arize Phoenix shows complete traces. Hallucination detection active. This is your biggest competitive advantage — it must work flawlessly.</div>
+      </div>
+
+      <!-- PHASE 6 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 06 — Data Layer</div>
+        <div class="phase-seq-title">SCADA Simulator + Threat Intelligence APIs</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>SCADA Simulator</strong> — SCADASimulator class generating realistic telemetry: voltage (230V ±5%), frequency (50Hz ±0.2Hz), current, access logs, command logs</li>
+          <li><strong>4 Attack Injectors</strong> — ransomware (voltage spike + encrypt commands), unauthorized_access (foreign IP + privilege escalation), ddos (packet flood patterns), data_exfiltration (large outbound + unusual read patterns)</li>
+          <li><strong>MITRE ATT&CK ICS connector</strong> — fetches from public MITRE STIX JSON, filters ICS-specific techniques, maps anomaly types to MITRE tactic categories</li>
+          <li><strong>NVD CVE connector</strong> — queries NIST NVD API v2.0 for SCADA/ICS CVEs matching attack type, returns real CVE IDs with CVSS scores</li>
+          <li><strong>4 Playbook JSON files</strong> — ransomware.json, unauthorized_access.json, ddos.json, data_exfiltration.json with action sequences and escalation paths</li>
+          <li><strong>Playbook executor</strong> — reads playbook JSON, executes action list, logs each action to Phoenix trace</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Simulator generates 10 normal readings per second without errors</li>
+          <li>Injecting "ransomware" scenario produces clearly anomalous telemetry values</li>
+          <li>MITRE lookup returns real technique objects for each attack type</li>
+          <li>NVD API returns real CVE IDs (e.g. CVE-2023-XXXX) for SCADA queries</li>
+          <li>All 4 playbooks execute without errors and log action sequences</li>
+        </ul>
+        <div class="phase-seq-expect">Data layer complete. Agent now has real tools to call during investigation. End-to-end pipeline runs on injected attack: detect → MITRE lookup → CVE lookup → playbook execute.</div>
+      </div>
+
+      <!-- PHASE 7 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 07 — GCP Secret Manager</div>
+        <div class="phase-seq-title">Secure All API Keys</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>PHOENIX_API_KEY secret</strong> — stored in Secret Manager via gcloud command</li>
+          <li><strong>NVD_API_KEY secret</strong> — stored in Secret Manager</li>
+          <li><strong>get_secret() utility function</strong> — SecretManagerServiceClient wrapper used in all modules instead of os.getenv()</li>
+          <li><strong>Replace all .env reads in production code</strong> with get_secret() calls</li>
+          <li><strong>Verify zero hardcoded credentials</strong> — grep codebase for any raw API key strings</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li><code>gcloud secrets list</code> shows PHOENIX_API_KEY and NVD_API_KEY</li>
+          <li><code>get_secret("PHOENIX_API_KEY")</code> returns correct key value at runtime</li>
+          <li>Full grep of codebase returns zero hardcoded key strings</li>
+          <li>Application still runs correctly after replacing .env reads with Secret Manager calls</li>
+        </ul>
+        <div class="phase-seq-expect">All secrets secured. Zero credentials in codebase or environment files. Production-grade security posture that judges will notice during code review.</div>
+      </div>
+
+      <!-- PHASE 8 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 08 — Frontend Dashboard</div>
+        <div class="phase-seq-title">Build The Real-Time Operator Interface</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>FastAPI application</strong> — serves dashboard HTML, WebSocket endpoint, REST API endpoints</li>
+          <li><strong>WebSocket /ws/threats</strong> — pushes live threat data to frontend every 2 seconds</li>
+          <li><strong>Real-time threat map</strong> — SVG grid visualization, nodes pulse red on active threat, green on normal</li>
+          <li><strong>Agent decision timeline</strong> — scrollable feed, each entry shows: timestamp, agent name, action taken, confidence score, outcome badge</li>
+          <li><strong>Human approval card</strong> — modal intercept for CRITICAL threats showing: threat details, AI reasoning chain, approve/reject buttons, 60-second countdown</li>
+          <li><strong>Arize observability panel</strong> — shows: total traces today, hallucination flags, avg quality score, direct link to Phoenix</li>
+          <li><strong>Incident report viewer</strong> — list of resolved incidents, click to expand full report</li>
+          <li><strong>Demo control panel</strong> — 4 buttons to inject attack scenarios for live demo</li>
+          <li><strong>POST /api/approve/{id}</strong> — human approval signal to waiting response agent</li>
+          <li><strong>POST /api/inject-attack/{type}</strong> — triggers simulator attack injection</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Dashboard loads at localhost:8080 within 2 seconds</li>
+          <li>Threat map updates live — clicking "Inject Ransomware" makes a node go red within 3 seconds</li>
+          <li>Decision timeline shows agent actions appearing in real time</li>
+          <li>Human approval modal fires and pauses pipeline for CRITICAL scenarios</li>
+          <li>Incident reports appear in list after each resolved incident</li>
+          <li>Arize panel shows live numbers from Phoenix API</li>
+        </ul>
+        <div class="phase-seq-expect">Full dashboard working locally. Complete end-to-end demo flow achievable: inject attack → watch agent work → approve critical → see incident report → open Phoenix traces.</div>
+      </div>
+
+      <!-- PHASE 9 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 09 — Deploy to Google Cloud Run</div>
+        <div class="phase-seq-title">Make It Live — Get Your Submission URL</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Dockerfile</strong> — Python 3.11-slim base, Node.js installed (for Phoenix MCP), requirements installed, uvicorn entrypoint</li>
+          <li><strong>Cloud Run deployment</strong> — <code>gcloud run deploy gridguard --source .</code> with 2GB RAM, 2 CPU, min-instances=1</li>
+          <li><strong>Environment variables on Cloud Run</strong> — GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_REGION set via --set-env-vars</li>
+          <li><strong>Agent Builder deployment</strong> — <code>client.agent_engines.create()</code> deploys orchestrator to Agent Runtime</li>
+          <li><strong>End-to-end production test</strong> — full attack cycle from public URL, not localhost</li>
+          <li><strong>Custom domain (optional)</strong> — cleaner URL for submission if time allows</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Public URL live: <code>https://gridguard-xxxx-uc.a.run.app</code></li>
+          <li>Dashboard loads on mobile, tablet, and desktop from external network</li>
+          <li>Full attack injection cycle completes on production URL in under 90 seconds</li>
+          <li>Agent Runtime resource name visible in GCP Console → Agent Builder</li>
+          <li>No cold start delays (min-instances=1 keeps container warm)</li>
+        </ul>
+        <div class="phase-seq-expect">GridGuard is live on the internet. Public URL ready for submission. Judges can open it right now and see the system working.</div>
+      </div>
+
+      <!-- PHASE 10 -->
+      <div class="phase-seq-item">
+        <div class="phase-seq-num">Phase 10 — Demo Video + Submission</div>
+        <div class="phase-seq-title">Record, Polish, Submit</div>
+        <div class="phase-seq-what">What To Build</div>
+        <ul class="phase-seq-items">
+          <li><strong>Rehearse demo script 5+ times</strong> — exact sequence: inject → detect → investigate → approve → resolve → Phoenix traces</li>
+          <li><strong>Record 3-minute demo video</strong> — screen capture with voiceover, uploaded to YouTube (public)</li>
+          <li><strong>Write README.md</strong> — architecture diagram, setup instructions, team, demo video link, live URL</li>
+          <li><strong>Write Devpost description</strong> — features summary, tech used, data sources, findings and learnings</li>
+          <li><strong>Verify GitHub repo</strong> — public, Apache 2.0 license in About section, all source code present, README complete</li>
+          <li><strong>Complete Devpost submission form</strong> — hosted URL + repo URL + video URL + Arize track selected + all team members added</li>
+        </ul>
+        <div class="phase-seq-what">What To Expect At End of Phase</div>
+        <ul class="phase-seq-items">
+          <li>Devpost submission submitted before June 11, 2026 2:00 PM PT</li>
+          <li>3-minute video uploaded publicly on YouTube, link in submission</li>
+          <li>GitHub repo public with all required fields</li>
+          <li>Hosted URL accessible to judges with no login required</li>
+        </ul>
+        <div class="phase-seq-expect">Submission complete. GridGuard is in the competition. All judging criteria covered. Arize track selected.</div>
+      </div>
+
+    </div><!-- end phase-sequence -->
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 4 — MILESTONE MAP
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-info">
+        <div class="section-label">Milestone Map</div>
+        <div class="section-title">Concrete Deliverable After Each Phase Pair</div>
+        <div class="section-desc">Every 2 phases = one tangible milestone your team can verify and demo internally.</div>
+      </div>
+    </div>
+
+    <div class="milestones">
+      <div class="milestone">
+        <div class="milestone-phase">Phases 01–02</div>
+        <div class="milestone-title">Environment Ready</div>
+        <div class="milestone-output">All tools installed. GCP project live. APIs enabled. Billing protected. Zero code written.</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-phase">Phases 03–04</div>
+        <div class="milestone-title">Agent Pipeline Running</div>
+        <div class="milestone-output">3 sub-agents chained via SequentialAgent. Local test produces detect → investigate → respond output. ADK Web UI shows hierarchy.</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-phase">Phases 05–06</div>
+        <div class="milestone-title">Full System Integrated</div>
+        <div class="milestone-output">Phoenix traces visible for every agent run. MITRE + CVE APIs returning real data. Attack simulator injecting 4 scenarios. Hallucination detection active.</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-phase">Phases 07–08</div>
+        <div class="milestone-title">Dashboard Live Locally</div>
+        <div class="milestone-output">Full end-to-end demo possible on localhost. Inject attack → agent responds → approval gate fires → incident report generated → Phoenix traces visible.</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-phase">Phases 09–10</div>
+        <div class="milestone-title">Submitted & Live</div>
+        <div class="milestone-output">Public URL on Cloud Run. 3-min demo video on YouTube. Devpost submission complete. Arize track selected. All team members added.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 5 — TEAM RESPONSIBILITY MAP
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-info">
+        <div class="section-label">Team Responsibility</div>
+        <div class="section-title">Who Owns What Across All 10 Phases</div>
+        <div class="section-desc">Parallel tracks. Not all work is sequential — some phases can be built simultaneously.</div>
+      </div>
+    </div>
+
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th>Team Member</th>
+          <th>Primary Ownership</th>
+          <th>Phases</th>
+          <th>Critical Deliverable</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MLOps Engineer</td>
+          <td>Arize Phoenix integration end-to-end. All evaluators, tracers, custom spans, session replay, hallucination detection, dataset management in Phoenix</td>
+          <td><span class="phase-card-tag tag-purple">Phase 05</span></td>
+          <td>Phoenix dashboard showing traces for every agent run. Hallucination flag firing on demo scenario.</td>
+        </tr>
+        <tr>
+          <td>DevOps Engineer</td>
+          <td>GCP setup, Cloud Run deployment, Secret Manager, Dockerfile, CI/CD, Agent Builder runtime deployment, billing management</td>
+          <td><span class="phase-card-tag tag-blue">Phases 02, 07, 09</span></td>
+          <td>Live public URL on Cloud Run. All secrets in Secret Manager. Zero downtime during demo.</td>
+        </tr>
+        <tr>
+          <td>Systems Engineer</td>
+          <td>SCADA simulator, attack scenario injectors, data pipeline, MITRE ATT&CK connector, NVD CVE connector, playbook executor, FastAPI backend</td>
+          <td><span class="phase-card-tag tag-yellow">Phases 06, 08</span></td>
+          <td>4 attack scenarios injectable on demand. Real MITRE and CVE data returning. Dashboard WebSocket live.</td>
+        </tr>
+        <tr>
+          <td>Cyber Security Expert</td>
+          <td>ADK agent instructions, attack scenario design, response playbook authoring, MITRE ICS technique mapping, threat classification logic, demo script</td>
+          <td><span class="phase-card-tag tag-green">Phases 04, 06, 10</span></td>
+          <td>4 playbook JSON files complete. Agent instructions technically accurate. Demo attack scenarios realistic.</td>
+        </tr>
+        <tr>
+          <td>All Team Members</td>
+          <td>Phase 01–03 setup (parallel), Phase 10 demo rehearsal and submission, README writing, Devpost description</td>
+          <td><span class="phase-card-tag tag-red">Phases 01, 03, 10</span></td>
+          <td>Submission complete by June 11 2:00 PM PT. Demo rehearsed minimum 5 times.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warn">
+      <strong>Parallel Build Notice</strong>
+      After Phase 03 (skeleton ready), Phases 04 and 06 can run in parallel: Cyber Expert + MLOps build agents while Systems Engineer builds simulator and data connectors. They merge at Phase 05. DevOps sets up GCP infrastructure (Phase 02, 07) completely independently throughout.
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 6 — WHAT THE 3-MIN DEMO DELIVERS
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-info">
+        <div class="section-label">Demo Sequence</div>
+        <div class="section-title">What The 3-Minute Demo Delivers To Judges</div>
+        <div class="section-desc">Every second mapped. Every judge criterion hit at a specific timestamp.</div>
+      </div>
+    </div>
+
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>What Happens On Screen</th>
+          <th>Judge Criterion Hit</th>
+          <th>What Judge Thinks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0:00 – 0:20</td>
+          <td>Open with 3 verified statistics on energy cyberattacks. One sentence: "Energy grids are being attacked by AI. The AI defending them can't be trusted or explained. GridGuard fixes both."</td>
+          <td><span class="phase-card-tag tag-red">Impact</span></td>
+          <td>"This solves a real problem that costs billions."</td>
+        </tr>
+        <tr>
+          <td>0:20 – 0:40</td>
+          <td>Show live dashboard. 12 grid nodes visible, all green. Click "Inject Ransomware Attack." One node pulses red immediately. Agent decision timeline starts updating.</td>
+          <td><span class="phase-card-tag tag-blue">Technical</span></td>
+          <td>"It actually works. This is live."</td>
+        </tr>
+        <tr>
+          <td>0:40 – 1:10</td>
+          <td>Agent autonomously detects anomaly (voltage spike, encrypt commands). Queries MITRE ATT&CK — shows T0886 technique. Queries NVD — shows CVE-2023-xxxx. Classifies as CRITICAL.</td>
+          <td><span class="phase-card-tag tag-blue">Technical</span> <span class="phase-card-tag tag-green">Idea</span></td>
+          <td>"Multi-step mission. Real data. Not mocked."</td>
+        </tr>
+        <tr>
+          <td>1:10 – 1:30</td>
+          <td>Human approval gate fires. Modal shows full AI reasoning. Operator reads it, clicks Approve. Agent executes ransomware playbook: isolates node, blocks C2 IP, alerts operator.</td>
+          <td><span class="phase-card-tag tag-blue">Technical</span> <span class="phase-card-tag tag-yellow">Design</span></td>
+          <td>"Safety-first design. Human still in control."</td>
+        </tr>
+        <tr>
+          <td>1:30 – 2:20</td>
+          <td>Switch to Arize Phoenix dashboard. Show full trace tree for this incident — every span named, attributes visible. Point to hallucination flag on one investigation step. Show response quality score 0.87/1.0.</td>
+          <td><span class="phase-card-tag tag-blue">Technical</span> <span class="phase-card-tag tag-green">Idea</span></td>
+          <td>"Nobody else has this. This is the differentiator."</td>
+        </tr>
+        <tr>
+          <td>2:20 – 2:45</td>
+          <td>Show auto-generated incident report: plain English, CVEs listed, MITRE techniques, actions taken, outcome. Inject a second attack (DDoS) — different playbook executes automatically (no approval needed for HIGH).</td>
+          <td><span class="phase-card-tag tag-yellow">Design</span> <span class="phase-card-tag tag-red">Impact</span></td>
+          <td>"Production-ready UX. Works on multiple scenarios."</td>
+        </tr>
+        <tr>
+          <td>2:45 – 3:00</td>
+          <td>End card: "GridGuard works on any energy grid globally. Open source. Deployable in under an hour. Zero additional infrastructure." Show GitHub repo link and live URL.</td>
+          <td><span class="phase-card-tag tag-red">Impact</span></td>
+          <td>"Memorable. I will think about this tomorrow."</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 7 — WHAT SUCCESS LOOKS LIKE
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-info">
+        <div class="section-label">Success Definition</div>
+        <div class="section-title">Exactly What A Winning Submission Looks Like</div>
+        <div class="section-desc">The non-negotiable bar. If all of these are true, you win or place in Arize track.</div>
+      </div>
+    </div>
+
+    <div class="phase-grid">
+      <div class="phase-card green">
+        <div class="phase-card-num">MUST HAVE 01</div>
+        <div class="phase-card-title">Agent Executes Actions, Not Just Answers</div>
+        <div class="phase-card-desc">Every agent response triggers a real tool call. The system isolates nodes, blocks IPs, generates reports. It does not just reply with text. This is the core hackathon requirement: move beyond chat.</div>
+        <span class="phase-card-tag tag-green">Non-Negotiable</span>
+      </div>
+      <div class="phase-card blue">
+        <div class="phase-card-num">MUST HAVE 02</div>
+        <div class="phase-card-title">Arize Integration Is Deep, Not Surface</div>
+        <div class="phase-card-desc">Phoenix traces show every sub-agent span with meaningful attributes. Hallucination evaluator is configured and fires on at least one demo scenario. Judges from Arize will click through the Phoenix dashboard.</div>
+        <span class="phase-card-tag tag-blue">Non-Negotiable</span>
+      </div>
+      <div class="phase-card yellow">
+        <div class="phase-card-num">MUST HAVE 03</div>
+        <div class="phase-card-title">Human Approval Gate Works Live In Demo</div>
+        <div class="phase-card-desc">The CRITICAL threat scenario must visibly pause the agent, surface the approval card with AI reasoning visible, and wait for human input before proceeding. This is the safety demonstration judges want to see.</div>
+        <span class="phase-card-tag tag-yellow">Non-Negotiable</span>
+      </div>
+      <div class="phase-card red">
+        <div class="phase-card-num">MUST HAVE 04</div>
+        <div class="phase-card-title">Demo Works Flawlessly On Public URL</div>
+        <div class="phase-card-desc">The Cloud Run URL loads fast, the demo cycle completes without errors, and the system works from any device. Test from a completely different network before recording. A broken demo loses immediately.</div>
+        <span class="phase-card-tag tag-red">Non-Negotiable</span>
+      </div>
+      <div class="phase-card purple">
+        <div class="phase-card-num">MUST HAVE 05</div>
+        <div class="phase-card-title">Real Data — Not Mocked Responses</div>
+        <div class="phase-card-desc">MITRE ATT&CK lookup returns real technique objects. NVD CVE query returns real CVE IDs. SCADA telemetry looks realistic. Judges from Arize know what fabricated data looks like. Do not mock the intelligence layer.</div>
+        <span class="phase-card-tag tag-purple">Non-Negotiable</span>
+      </div>
+      <div class="phase-card green">
+        <div class="phase-card-num">MUST HAVE 06</div>
+        <div class="phase-card-title">GitHub Repo Is Clean and Complete</div>
+        <div class="phase-card-desc">Public repo. Apache 2.0 license in About section. README with architecture diagram, setup instructions, demo video link, live URL. Judges clone repos and attempt to run them. Make it work on the first try.</div>
+        <span class="phase-card-tag tag-green">Non-Negotiable</span>
+      </div>
+    </div>
+
+    <div class="callout callout-success">
+      <strong>The One Sentence That Defines Winning</strong>
+      When the Arize judge opens Phoenix after your demo and sees every decision traced, a hallucination flagged, and a quality score attached — that is the moment you separate from every other team in the track.
+    </div>
+
+    <div class="callout callout-danger">
+      <strong>The One Thing That Loses</strong>
+      A broken demo. Every requirement above could be met perfectly but if the demo crashes during recording or the Cloud Run URL is down when judges visit — you are out. Rehearse 5 times. Set min-instances=1. Test from external network.
+    </div>
+
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;width:100%;">
+    <div class="footer-brand">GRID<span>GUARD</span></div>
+    <div class="footer-note">
+      Google Cloud Rapid Agent Hackathon — Arize Track<br>
+      Complete Project Sequence Document<br>
+      10 Phases · 20 Features · 5 Milestones
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
