@@ -77,7 +77,8 @@ pip install -r requirements.txt
 ### 2. Configure Environment
 ```bash
 cp .env.example .env
-# Edit .env — add your PHOENIX_API_KEY and NVD_API_KEY
+# Edit .env — set your GCP project, PHOENIX_API_KEY and NVD_API_KEY.
+# GRIDGUARD_MODEL defaults to gemini-3-flash-preview and can be overridden.
 ```
 
 ### 3. Run Locally
@@ -89,6 +90,17 @@ python main.py
 ### 4. Inject a Live Attack
 Open `http://localhost:8080` → click any attack button in the Demo Control Panel.  
 Watch the agent pipeline execute in the Decision Timeline.
+
+### Incident history and replay
+
+Completed incidents include post-response grounding and playbook-quality checks.
+Use the **Replay Decisions** button in an incident report, or query:
+
+```text
+GET /api/incidents
+GET /api/incidents/{incident_id}/replay
+GET /api/evaluations
+```
 
 ---
 

@@ -185,7 +185,7 @@
   <div class="approval-modal">
     <div class="approval-header">
       <div class="approval-badge">🚨 CRITICAL THREAT — HUMAN APPROVAL REQUIRED</div>
-      <div class="approval-countdown" id="approval-countdown">120s</div>
+      <div class="approval-countdown" id="approval-countdown">60s</div>
     </div>
 
     <div class="approval-body">
@@ -240,7 +240,10 @@
   <div class="report-modal">
     <div class="report-modal-header">
       <div id="report-modal-title">Incident Report</div>
-      <button class="modal-close" onclick="closeReportModal()">✕</button>
+      <div class="report-modal-actions">
+        <button class="replay-btn" id="replay-btn" onclick="openIncidentReplay()">▶ Replay Decisions</button>
+        <button class="modal-close" onclick="closeReportModal()">✕</button>
+      </div>
     </div>
     <div class="report-modal-body" id="report-modal-body">
     </div>

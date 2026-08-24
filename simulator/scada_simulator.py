@@ -45,7 +45,8 @@ class SCADASimulator:
 
     def register_callback(self, fn: Callable[[dict], None]) -> None:
         """Register a function to receive each telemetry tick."""
-        self._callbacks.append(fn)
+        if fn not in self._callbacks:
+            self._callbacks.append(fn)
 
     def start(self) -> None:
         """Start the background telemetry generation thread."""

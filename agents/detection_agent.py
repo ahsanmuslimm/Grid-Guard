@@ -4,6 +4,8 @@ Monitors SCADA telemetry for anomalies using Gemini reasoning.
 Writes detection result to session state via output_key.
 """
 
+import os
+
 from google.adk.agents import LlmAgent
 from tools.scada_reader import (
     read_scada_telemetry,
@@ -14,7 +16,7 @@ from tools.scada_reader import (
 
 detection_agent = LlmAgent(
     name="detection_agent",
-    model="gemini-2.0-flash",
+    model=os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
     description="Monitors SCADA telemetry for anomalies and cyber threats in energy grid infrastructure",
     instruction="""
     You are a SCADA anomaly detection specialist for critical energy infrastructure.

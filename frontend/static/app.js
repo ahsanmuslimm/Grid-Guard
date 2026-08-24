@@ -21,6 +21,7 @@ const state = {
   pendingApprovals: {},
   approvalCountdownTimer: null,
   currentApprovalId: null,
+  currentReport: null,
   lastTelemetry: null,
 };
 
@@ -309,7 +310,7 @@ function showApprovalModal(approval) {
   $('approval-overlay').classList.remove('hidden');
 
   // Start countdown
-  const timeout = approval.timeout_seconds || 120;
+  const timeout = approval.timeout_seconds || 60;
   startApprovalCountdown(timeout);
 }
 
@@ -439,6 +440,8 @@ function renderReports(reports) {
 }
 
 function openReportModal(report) {
+  state.currentReport = report;
+  $('replay-btn').classList.toggle('hidden', !report.incident_id);
   $('report-modal-title').textContent = report.title || 'Incident Report';
 
   const body = $('report-modal-body');
@@ -519,8 +522,46 @@ function openReportModal(report) {
   $('report-overlay').classList.remove('hidden');
 }
 
+async function openIncidentReplay() {
+  const report = state.currentReport;
+  if (!report || !report.incident_id) return;
+  const body = $('report-modal-body');
+  body.innerHTML = '<div class="timeline-empty">Loading decision replay…</div>';
+  try {
+    const response = await fetch(`/api/incidents/${encodeURIComponent(report.incident_id)}/replay`);
+    if (!response.ok) throw new Error(`Replay unavailable (${response.status})`);
+    const replay = await response.json();
+    $('report-modal-title').textContent = `Decision Replay — ${replay.incident_id}`;
+    body.innerHTML = '';
+
+    const evaluation = replay.evaluation || {};
+    const summary = document.createElement('div');
+    summary.className = 'report-section';
+    summary.innerHTML = `<div class="report-section-title">Replay Summary</div>
+      <div class="report-section-body">
+        <b>Status:</b> ${escHtml(replay.status || 'unknown')}<br/>
+        <b>Attack:</b> ${escHtml(replay.attack_type || 'unknown')}<br/>
+        <b>Node:</b> ${escHtml(replay.node_id || 'unknown')}<br/>
+        <b>Quality:</b> ${evaluation.quality_score ?? '—'}<br/>
+        <b>Hallucination flagged:</b> ${evaluation.hallucination_flagged ? 'Yes' : 'No'}
+      </div>`;
+    body.appendChild(summary);
+
+    (replay.events || []).forEach(event => {
+      const item = document.createElement('div');
+      item.className = 'replay-event';
+      item.innerHTML = `<div class="replay-event-meta">${formatTime(event.timestamp)} · ${escHtml(event.agent)} · ${escHtml(event.action)}</div>
+        <div>${escHtml(event.reasoning || '')}</div>`;
+      body.appendChild(item);
+    });
+  } catch (error) {
+    body.innerHTML = `<div class="timeline-empty">${escHtml(error.message)}</div>`;
+  }
+}
+
 function closeReportModal() {
   $('report-overlay').classList.add('hidden');
+  state.currentReport = null;
 }
 
 // Close report modal when clicking overlay background
@@ -540,11 +581,12 @@ async function pollPhoenixStats() {
     $('pstat-quality').textContent      = data.avg_quality_score != null
       ? data.avg_quality_score.toFixed(2)
       : '—';
-    $('pstat-status').textContent       = data.status === 'connected' ? '✓ Live' : '⚠ Offline';
-    $('pstat-status').className         = 'pstat-value ' + (data.status === 'connected' ? 'pstat-good' : 'pstat-warn');
+    const observable = data.status === 'connected' || data.status === 'local';
+    $('pstat-status').textContent       = data.status === 'connected' ? '✓ Cloud' : (data.status === 'local' ? '✓ Local' : '⚠ Offline');
+    $('pstat-status').className         = 'pstat-value ' + (observable ? 'pstat-good' : 'pstat-warn');
 
-    $('pill-phoenix-val').textContent = data.status === 'connected'
-      ? `Phoenix: ${data.total_traces} traces`
+    $('pill-phoenix-val').textContent = observable
+      ? `Observability: ${data.total_traces} traces`
       : 'Phoenix: Offline';
 
     if (data.phoenix_url) {

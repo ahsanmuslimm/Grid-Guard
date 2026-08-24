@@ -4,13 +4,15 @@ Reads detection result from session state, queries MITRE ATT&CK ICS
 and NVD CVE APIs to classify and confirm the threat.
 """
 
+import os
+
 from google.adk.agents import LlmAgent
 from tools.mitre_lookup import lookup_mitre_technique
 from tools.cve_lookup import lookup_cve
 
 investigation_agent = LlmAgent(
     name="investigation_agent",
-    model="gemini-2.0-flash",
+    model=os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
     description="Investigates detected SCADA threats using MITRE ATT&CK ICS and NVD CVE threat intelligence",
     instruction="""
     You are a cybersecurity threat investigator specializing in ICS/OT (Industrial Control System) threats.

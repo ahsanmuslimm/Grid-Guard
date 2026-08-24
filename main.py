@@ -5,7 +5,6 @@ Import order matters: Phoenix MUST be initialized before any agent runs.
 """
 
 import os
-import sys
 from dotenv import load_dotenv
 
 # Load environment variables FIRST (.env for local dev)
@@ -37,25 +36,7 @@ from observability.phoenix_setup import tracer  # noqa: E402 — intentional imp
 # Now import everything else
 import uvicorn  # noqa: E402
 from frontend.main import app  # noqa: E402
-from simulator.scada_simulator import simulator  # noqa: E402
-from tools.scada_reader import set_telemetry  # noqa: E402
-from frontend.state import push_threat_event, update_node_states  # noqa: E402
-
-
-def on_telemetry_tick(reading: dict) -> None:
-    """
-    Callback fired by simulator every 2 seconds.
-    Updates the SCADA reader (for agent consumption) and the dashboard state.
-    """
-    # Feed latest reading to the detection agent's tools
-    set_telemetry(reading, attack_type=reading.get("attack_type"))
-
-    # Push to dashboard WebSocket state
-    push_threat_event(reading)
-
-    # Update node map
-    states = simulator.get_node_states()
-    update_node_states(states)
+from runtime import start_runtime  # noqa: E402
 
 
 def startup() -> None:
@@ -66,8 +47,7 @@ def startup() -> None:
     print("=" * 60 + "\n")
 
     # Register simulator callback and start
-    simulator.register_callback(on_telemetry_tick)
-    simulator.start()
+    start_runtime()
     print("[OK] SCADA Simulator started - 12 nodes live\n")
 
     env = os.getenv("GRIDGUARD_ENV", "development")

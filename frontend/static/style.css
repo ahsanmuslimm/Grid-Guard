@@ -688,6 +688,27 @@ html, body {
   background: var(--bg-panel-alt);
 }
 
+.report-modal-actions { display: flex; align-items: center; gap: 8px; }
+.replay-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 5px;
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+.replay-btn:hover { background: rgba(0, 229, 255, 0.16); }
+.replay-event {
+  border-left: 2px solid var(--accent-cyan);
+  padding: 8px 10px;
+  background: var(--bg-panel-alt);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.replay-event-meta { color: var(--text-muted); font-family: var(--font-mono); }
+
 .modal-close {
   background: transparent;
   border: none;

@@ -7,6 +7,7 @@ WebSocket pushes live threat data every 2 seconds.
 import asyncio
 import json
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 
@@ -21,15 +22,29 @@ from frontend.state import (
     set_approval_result,
     get_timeline,
     get_all_node_states,
+    get_incident_history,
+    get_incident_replay,
+    has_pending_approval,
 )
 from tools.report_generator import get_all_reports
-from observability.evaluators import get_phoenix_stats
+from observability.evaluators import get_incident_evaluations, get_phoenix_stats
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    from runtime import start_runtime, stop_runtime
+    start_runtime()
+    try:
+        yield
+    finally:
+        stop_runtime()
+
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="GridGuard",
     description="Autonomous SCADA Cyber Threat Response — Google Cloud Hackathon",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -145,6 +160,8 @@ async def inject_attack(attack_type: str, background_tasks: BackgroundTasks):
 @app.post("/api/approve/{incident_id}")
 async def approve_response(incident_id: str, approved: bool = True):
     """Human approval gate — operator approves or rejects CRITICAL threat response."""
+    if not has_pending_approval(incident_id):
+        raise HTTPException(status_code=404, detail="No pending approval for this incident")
     result = "approved" if approved else "rejected"
     set_approval_result(incident_id, result)
     return {
@@ -157,6 +174,8 @@ async def approve_response(incident_id: str, approved: bool = True):
 @app.post("/api/escalate/{incident_id}")
 async def escalate_incident(incident_id: str):
     """Escalate a pending incident to SOC team."""
+    if not has_pending_approval(incident_id):
+        raise HTTPException(status_code=404, detail="No pending approval for this incident")
     set_approval_result(incident_id, "escalated")
     return {
         "incident_id": incident_id,
@@ -190,6 +209,12 @@ async def phoenix_stats():
     return stats
 
 
+@app.get("/api/evaluations")
+async def incident_evaluations():
+    """Return post-incident grounding and response-quality results."""
+    return {"evaluations": get_incident_evaluations()}
+
+
 @app.get("/api/status")
 async def system_status():
     """Return overall GridGuard system status."""
@@ -206,6 +231,19 @@ async def system_status():
         "phoenix_url": os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com") + "/projects/gridguard",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+
+@app.get("/api/incidents")
+async def incident_history():
+    return {"incidents": get_incident_history()}
+
+
+@app.get("/api/incidents/{incident_id}/replay")
+async def incident_replay(incident_id: str):
+    replay = get_incident_replay(incident_id)
+    if replay is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return replay
 
 
 # ── Background task helper ────────────────────────────────────────────────────

@@ -124,7 +124,7 @@ def request_human_approval(
     recommended_playbook: str,
     mitre_techniques: list | None = None,
     cves: list | None = None,
-    timeout_seconds: int = 120
+    timeout_seconds: int = 60
 ) -> dict[str, Any]:
     """
     Request human approval before executing a CRITICAL threat response.

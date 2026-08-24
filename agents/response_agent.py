@@ -4,6 +4,7 @@ Reads both upstream results, handles human approval gate for CRITICAL threats,
 executes the appropriate playbook, and generates the incident report.
 """
 
+import os
 import uuid
 from google.adk.agents import LlmAgent
 from tools.playbook_executor import execute_playbook, request_human_approval
@@ -11,7 +12,7 @@ from tools.report_generator import generate_incident_report
 
 response_agent = LlmAgent(
     name="response_agent",
-    model="gemini-2.0-flash",
+    model=os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
     description="Executes threat response playbooks and generates incident reports for confirmed SCADA threats",
     instruction="""
     You are a threat response coordinator for critical energy infrastructure.
@@ -24,16 +25,14 @@ response_agent = LlmAgent(
     → Call generate_incident_report with false-positive context
     → Output false positive report and STOP.
 
-    STEP 2 — Determine approval requirement:
-    Based on investigation_result.classification:
-    - CRITICAL → MUST call request_human_approval BEFORE executing playbook (mandatory safety gate)
-    - HIGH → call request_human_approval (proceed after 60s timeout if no response)
-    - MEDIUM → execute playbook immediately, no approval needed
+    STEP 2 — Determine approval requirement from the selected playbook:
+    - ransomware and unauthorized_access → MUST call request_human_approval
+    - ddos and data_exfiltration → execute automatically, even when classified HIGH
     - LOW → log the event, no playbook execution needed
 
-    STEP 3 — For CRITICAL/HIGH: Request human approval:
+    STEP 3 — For approval-required playbooks: Request human approval:
     Call request_human_approval with:
-    - incident_id: generate a unique ID (format: INC-YYYYMMDD-XXXX)
+    - incident_id: use the exact canonical incident ID from the mission prompt; never generate a second ID
     - threat_classification: from investigation_result.classification
     - threat_summary: plain English summary from investigation_result.investigation_summary
     - ai_reasoning: explain WHY you believe this is the correct classification and playbook
