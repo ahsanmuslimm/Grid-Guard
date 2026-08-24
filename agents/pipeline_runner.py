@@ -276,3 +276,4 @@ def _parse_result(result_text: str, incident_id: str, attack_type: str) -> dict:
             "report_generated": True,
             "response_summary": result_text[:300] if result_text else "Pipeline completed"
         }
+

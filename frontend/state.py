@@ -188,7 +188,7 @@ def get_incident_history() -> list[dict]:
     return records
 
 
-def get_incident_replay(incident_id: str) -> dict | None:
+def get_incident_replay(incident_id: str) -> dict | None: 
     """Return the complete chronological decision replay for one incident."""
     incident = _incident_history.get(incident_id)
-    return dict(incident) if incident else None
+    return dict(incident) if incident else None 

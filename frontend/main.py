@@ -266,5 +266,5 @@ async def _run_pipeline_background(attack_type: str, node_id: str):
             reasoning=f"Background pipeline error: {str(e)[:200]}",
             confidence=0.0,
             outcome="error",
-            severity="HIGH"
+            severity="HIGH" 
         )

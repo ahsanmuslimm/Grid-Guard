@@ -8,13 +8,13 @@ from frontend.state import push_threat_event, update_node_states
 from simulator.scada_simulator import simulator
 from tools.scada_reader import set_telemetry
 
-_initialized = False
+_initialized = False 
 
 
 def on_telemetry_tick(reading: dict) -> None:
     set_telemetry(reading, attack_type=reading.get("attack_type"))
     push_threat_event(reading)
-    update_node_states(simulator.get_node_states())
+    update_node_states(simulator.get_node_states()) 
 
 
 def start_runtime() -> None:

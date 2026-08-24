@@ -6,10 +6,11 @@ These run after each incident to evaluate agent decision quality.
 
 import os
 import re
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime, timezone 
+from typing import Any 
 
-_incident_evaluations: list[dict[str, Any]] = []
+_incident_evaluations: list[dict[str, Any]] = [] 
+
 
 
 def evaluate_incident(incident_id: str, attack_type: str, investigation_result: dict | None, response_result: dict | None) -> dict[str, Any]:
