@@ -4,6 +4,7 @@ Keeps simulator startup identical whether the app is launched with ``python
 main.py`` or directly through Uvicorn/Cloud Run.
 """
 
+
 from frontend.state import push_threat_event, update_node_states
 from simulator.scada_simulator import simulator
 from tools.scada_reader import set_telemetry

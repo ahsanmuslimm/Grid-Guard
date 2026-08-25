@@ -6,6 +6,7 @@
 /* ── Reset & Base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+
 :root {
   --bg-base:       #0a0e17;
   --bg-panel:      #0f1520;

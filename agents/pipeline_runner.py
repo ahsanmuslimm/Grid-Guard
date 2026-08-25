@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+
 from config import configure_environment
 
 configure_environment()

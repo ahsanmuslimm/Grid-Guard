@@ -10,6 +10,7 @@ import threading
 from datetime import datetime, timezone
 from typing import Callable
 
+
 from simulator.attack_scenarios import (
     inject_ransomware,
     inject_unauthorized_access,

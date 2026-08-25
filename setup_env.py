@@ -7,6 +7,7 @@ import os
 import sys
 import pathlib
 
+
 ENV_PATH = pathlib.Path(".env")
 
 print("\n" + "=" * 60)
@@ -99,3 +100,5 @@ print("\n" + "=" * 60)
 print("  Setup complete! Run: python main.py")
 print("  Dashboard: http://localhost:8080")
 print("=" * 60 + "\n")
+
+

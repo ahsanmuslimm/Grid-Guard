@@ -9,6 +9,7 @@ import random
 from datetime import datetime, timezone
 
 
+
 def inject_ransomware(base_reading: dict) -> dict:
     """
     Ransomware attack pattern:

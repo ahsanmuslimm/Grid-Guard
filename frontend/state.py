@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+
 # ── Live threat feed (pushed to WebSocket clients every 2s) ─────────────────
 _latest_threats: list[dict] = []
 _node_states: dict[str, str] = {}

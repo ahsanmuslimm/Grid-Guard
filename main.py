@@ -10,6 +10,8 @@ from config import configure_environment
 # Load environment variables FIRST (.env for local dev)
 configure_environment()
 
+
+
 # In production — pull secrets from GCP Secret Manager and inject into env
 # This runs before Phoenix init so the API key is available
 def _inject_gcp_secrets() -> None:

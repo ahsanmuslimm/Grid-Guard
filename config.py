@@ -8,6 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
+
 def configure_environment() -> None:
     """Load ``.env`` and normalize current Google ADK environment names."""
     load_dotenv()

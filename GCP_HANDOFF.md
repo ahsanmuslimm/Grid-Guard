@@ -13,6 +13,7 @@ gcloud config set run/region us-central1
 gcloud auth application-default set-quota-project YOUR_PROJECT_ID
 ```
 
+
 Do not create a downloadable service-account JSON key. Local code uses ADC and
 Cloud Run/Agent Engine use the attached `gridguard-sa` identity.
 
