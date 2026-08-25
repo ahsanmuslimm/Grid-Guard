@@ -24,9 +24,13 @@ def set_telemetry(data: dict, attack_type: str | None = None) -> None:
     _active_attack = attack_type
 
 
-def read_scada_telemetry() -> dict[str, Any]:
+def read_scada_telemetry(telemetry_snapshot: dict | None = None) -> dict[str, Any]:
     """
     Read the current SCADA telemetry snapshot from the energy grid.
+
+    Args:
+        telemetry_snapshot: Optional mission-provided reading. This supports
+            remote Agent Engine calls where no local simulator process exists.
 
     Returns a JSON object with:
     - timestamp, node_id, voltage (V), frequency (Hz), current (A)
@@ -35,7 +39,10 @@ def read_scada_telemetry() -> dict[str, Any]:
     - status: NORMAL | ANOMALY
     """
     with _tracer.start_as_current_span("scada.read_telemetry") as span:
-        if not _current_telemetry:
+        if telemetry_snapshot:
+            reading = dict(telemetry_snapshot)
+            set_telemetry(reading, reading.get("attack_type"))
+        elif not _current_telemetry:
             reading = {
                 "timestamp": datetime.utcnow().isoformat(),
                 "node_id": "SUBSTATION_001",

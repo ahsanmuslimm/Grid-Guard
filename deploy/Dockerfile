@@ -15,7 +15,7 @@ RUN apt-get update && \
     node --version && npm --version
 
 # Install Python deps separately for layer caching
-# requirements-docker.txt has full arize-phoenix (needs Python <=3.13)
+# requirements-docker.txt contains the Phoenix Cloud client/exporter only.
 COPY requirements-docker.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-docker.txt

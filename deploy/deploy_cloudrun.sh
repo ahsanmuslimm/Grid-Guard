@@ -10,7 +10,8 @@ set -e
 PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-gridguard-agent-2026}"
 REGION="${GOOGLE_CLOUD_REGION:-us-central1}"
 SERVICE_NAME="gridguard"
-SA_EMAIL="gridguard-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+PHOENIX_BASE_URL="${PHOENIX_BASE_URL:-https://app.phoenix.arize.com}"
+GRIDGUARD_MODEL="${GRIDGUARD_MODEL:-gemini-3-flash-preview}"
 
 echo ""
 echo "=============================================="
@@ -40,26 +41,9 @@ gcloud secrets describe NVD_API_KEY --project="${PROJECT_ID}" > /dev/null 2>&1 \
 echo ""
 echo "[1/4] Deploying to Cloud Run (3-5 minutes)..."
 
-gcloud run deploy "${SERVICE_NAME}" \
-  --source . \
-  --platform managed \
-  --region "${REGION}" \
-  --allow-unauthenticated \
-  --port 8080 \
-  --memory 2Gi \
-  --cpu 2 \
-  --min-instances 1 \
-  --max-instances 10 \
-  --timeout 300 \
-  --concurrency 80 \
-  --service-account "${SA_EMAIL}" \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID}" \
-  --set-env-vars "GOOGLE_CLOUD_REGION=${REGION}" \
-  --set-env-vars "GRIDGUARD_ENV=production" \
-  --set-env-vars "LOG_LEVEL=INFO" \
-  --set-env-vars "PHOENIX_BASE_URL=https://app.phoenix.arize.com" \
-  --set-secrets "PHOENIX_API_KEY=PHOENIX_API_KEY:latest" \
-  --set-secrets "NVD_API_KEY=NVD_API_KEY:latest"
+gcloud builds submit . \
+  --config deploy/cloudbuild.yaml \
+  --substitutions "_REGION=${REGION},_SERVICE=${SERVICE_NAME},_PHOENIX_BASE_URL=${PHOENIX_BASE_URL},_MODEL=${GRIDGUARD_MODEL}"
 
 # ── Get URL ───────────────────────────────────────────────────
 echo ""
@@ -89,7 +73,7 @@ echo "[4/4] Post-deploy checklist..."
 echo "  □ Test from a DIFFERENT device/network (not localhost)"
 echo "  □ Open ${SERVICE_URL} in a browser"
 echo "  □ Inject ransomware attack — full cycle should complete in <90s"
-echo "  □ Verify Arize Phoenix shows traces at https://app.phoenix.arize.com/projects/gridguard"
+echo "  □ Verify Arize Phoenix shows traces in the configured workspace/project"
 echo "  □ Copy URL for Devpost submission"
 
 echo ""

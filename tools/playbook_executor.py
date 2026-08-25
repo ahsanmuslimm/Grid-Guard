@@ -12,6 +12,12 @@ from typing import Any
 from datetime import datetime
 
 PLAYBOOKS_DIR = Path(__file__).parent.parent / "playbooks"
+SUPPORTED_PLAYBOOKS = {
+    "ransomware",
+    "unauthorized_access",
+    "ddos",
+    "data_exfiltration",
+}
 
 # Global approval state — the dashboard writes here, this module reads it
 _pending_approvals: dict[str, dict] = {}
@@ -24,6 +30,9 @@ def _load_playbook(playbook_name: str) -> dict:
     safe_name = playbook_name.lower().replace(" ", "_").replace("-", "_")
     if not safe_name.endswith(".json"):
         safe_name += ".json"
+
+    if safe_name.removesuffix(".json") not in SUPPORTED_PLAYBOOKS:
+        raise FileNotFoundError(f"Unsupported playbook: {playbook_name}")
 
     playbook_path = PLAYBOOKS_DIR / safe_name
     if not playbook_path.exists():
@@ -60,6 +69,23 @@ def execute_playbook(
             "incident_id": incident_id,
             "actions_taken": []
         }
+
+    # Safety must be enforced by the tool, not only by an LLM instruction.
+    # A gated playbook cannot execute unless the dashboard recorded approval
+    # for this exact incident ID.
+    if playbook.get("requires_approval", False):
+        from frontend.state import get_approval_result
+
+        approval_status = get_approval_result(incident_id)
+        if approval_status != "approved":
+            return {
+                "status": "blocked_approval_required",
+                "playbook": playbook_name,
+                "incident_id": incident_id,
+                "approval_status": approval_status or "not_requested",
+                "message": "Operator approval is required before this playbook can execute.",
+                "actions_taken": [],
+            }
 
     actions_taken = []
     execution_log = []
@@ -143,7 +169,7 @@ def request_human_approval(
     Returns:
         Dict with approval_status: 'approved' | 'rejected' | 'timeout' | 'escalated'
     """
-    from frontend.state import push_approval_request, get_approval_result
+    from frontend.state import clear_pending_approval, push_approval_request, get_approval_result
 
     approval_payload = {
         "incident_id": incident_id,
@@ -175,6 +201,7 @@ def request_human_approval(
         time.sleep(1)
 
     # Timeout — escalate automatically
+    clear_pending_approval(incident_id)
     return {
         "approval_status": "timeout",
         "incident_id": incident_id,

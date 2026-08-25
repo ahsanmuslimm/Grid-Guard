@@ -12,9 +12,14 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from config import configure_environment
+
+configure_environment()
+
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode, format_span_id
 
 from agents.orchestrator import gridguard_pipeline
 from frontend.state import (
@@ -23,7 +28,8 @@ from frontend.state import (
     register_incident,
     resolve_incident,
 )
-from observability.evaluators import evaluate_incident
+from observability.evaluators import evaluate_incident, publish_evaluation_annotations
+from observability.phoenix_setup import flush_traces
 
 _tracer = trace.get_tracer("gridguard.pipeline_runner")
 
@@ -76,7 +82,11 @@ async def run_pipeline_for_attack(
     )
 
     try:
+        result: dict[str, Any]
+        evaluation: dict[str, Any]
+        root_span_id = ""
         with _tracer.start_as_current_span("gridguard.full_pipeline") as span:
+            root_span_id = format_span_id(span.get_span_context().span_id)
             span.set_attribute("incident.id", incident_id)
             span.set_attribute("incident.attack_type", attack_type)
             span.set_attribute("incident.node_id", node_id)
@@ -84,6 +94,16 @@ async def run_pipeline_for_attack(
             # Create a new session for this incident
             session_id = f"session_{incident_id}"
             user_id = "gridguard_system"
+            await _session_service.create_session(
+                app_name="gridguard",
+                user_id=user_id,
+                session_id=session_id,
+                state={
+                    "incident_id": incident_id,
+                    "attack_type": attack_type,
+                    "node_id": node_id,
+                },
+            )
 
             # Build the mission prompt
             prompt = _build_mission_prompt(incident_id, attack_type, node_id, telemetry_snapshot)
@@ -94,6 +114,8 @@ async def run_pipeline_for_attack(
                 "recommended_playbook": attack_type,
                 "cves": [],
                 "mitre_techniques": [],
+                "claimed_cves": [],
+                "claimed_mitre_techniques": [],
             }
             async for event in _runner.run_async(
                 user_id=user_id,
@@ -101,7 +123,7 @@ async def run_pipeline_for_attack(
                 new_message=_make_message(prompt),
             ):
                 # Collect the final text response
-                if hasattr(event, "content") and event.content:
+                if getattr(event, "author", "") in {"response_agent", "gridguard_pipeline"} and getattr(event, "content", None):
                     for part in event.content.parts:
                         if hasattr(part, "text") and part.text:
                             result_text = part.text
@@ -126,19 +148,37 @@ async def run_pipeline_for_attack(
             span.set_attribute("evaluation.hallucination_flagged", evaluation["hallucination_flagged"])
             span.set_attribute("evaluation.quality_score", evaluation["quality_score"])
             span.set_attribute("evaluation.playbook_match", evaluation["playbook_match"])
-            resolve_incident(incident_id, result=result, evaluation=evaluation)
-
-            add_timeline_event(
-                agent_name="gridguard_pipeline",
-                action="pipeline_completed",
-                reasoning=f"Incident {incident_id} resolved. Status: {result.get('response_status')}",
-                confidence=1.0,
-                outcome=result.get("response_status", "completed"),
-                severity="INFO",
-                incident_id=incident_id,
+            span.set_status(
+                Status(StatusCode.ERROR, result.get("message", "pipeline response error"))
+                if result.get("response_status") == "error"
+                else Status(StatusCode.OK)
             )
 
-            return result
+        # Flush the completed root span before attaching Phoenix annotations.
+        # Annotation delivery is best-effort and never blocks containment.
+        flush_traces()
+        evaluation["phoenix_annotation_status"] = publish_evaluation_annotations(
+            span_id=root_span_id,
+            evaluation=evaluation,
+        )
+
+        if result.get("response_status") == "error":
+            fail_incident(incident_id, result.get("message", "Invalid response from pipeline"))
+        else:
+            resolve_incident(incident_id, result=result, evaluation=evaluation)
+
+        add_timeline_event(
+            agent_name="gridguard_pipeline",
+            action="pipeline_completed",
+            reasoning=f"Incident {incident_id} finished. Status: {result.get('response_status')}",
+            confidence=1.0 if result.get("response_status") != "error" else 0.0,
+            outcome=result.get("response_status", "completed"),
+            severity="INFO" if result.get("response_status") != "error" else "CRITICAL",
+            incident_id=incident_id,
+        )
+
+        result["evaluation"] = evaluation
+        return result
 
     except Exception as e:
         fail_incident(incident_id, str(e))
@@ -170,7 +210,10 @@ def _build_mission_prompt(
             f"voltage={telemetry.get('voltage', 'N/A')}V, "
             f"frequency={telemetry.get('frequency', 'N/A')}Hz, "
             f"status={telemetry.get('status', 'N/A')}, "
-            f"commands={telemetry.get('command_log', [])}"
+            f"commands={telemetry.get('command_log', [])}, "
+            f"access_log={telemetry.get('access_log', [])}, "
+            f"outbound_mb={telemetry.get('outbound_mb', 'N/A')}, "
+            f"attack_type={telemetry.get('attack_type', 'N/A')}"
         )
 
     return (
@@ -223,7 +266,8 @@ def _log_event_to_timeline(event: Any, incident_id: str) -> None:
             elif fn_response:
                 # Determine severity from response content
                 resp_str = str(fn_response.response)[:200]
-                severity = "HIGH" if "CRITICAL" in resp_str or "anomaly_detected.*true" in resp_str else "INFO"
+                lowered = resp_str.lower()
+                severity = "HIGH" if "critical" in lowered or "anomaly_detected" in lowered and "true" in lowered else "INFO"
                 add_timeline_event(
                     agent_name=author,
                     action=f"tool_result:{fn_response.name}",
@@ -238,42 +282,77 @@ def _log_event_to_timeline(event: Any, incident_id: str) -> None:
 
 
 def _capture_investigation_evidence(event: Any, evidence: dict) -> None:
-    """Capture the exact grounded tool outputs used by post-incident evaluation."""
+    """Capture grounded tool outputs and the investigator's claimed IDs."""
     try:
         content = getattr(event, "content", None)
         for part in getattr(content, "parts", []) or []:
             response = getattr(part, "function_response", None)
-            if not response:
+            if response:
+                payload = response.response
+                # ADK versions may wrap a Python tool's dictionary under
+                # ``result``. Accept both forms so grounding evidence is not
+                # lost during SDK upgrades.
+                if (
+                    isinstance(payload, dict)
+                    and isinstance(payload.get("result"), dict)
+                ):
+                    payload = payload["result"]
+                if isinstance(payload, dict):
+                    if response.name == "lookup_cve":
+                        evidence["cves"] = payload.get("cves", [])
+                    elif response.name == "lookup_mitre_technique":
+                        evidence["mitre_techniques"] = payload.get("techniques", [])
+
+            if getattr(event, "author", "") != "investigation_agent":
                 continue
-            payload = response.response
-            if not isinstance(payload, dict):
+            text = getattr(part, "text", None)
+            claims = _parse_json_object(text or "")
+            if not claims:
                 continue
-            if response.name == "lookup_cve":
-                evidence["cves"] = payload.get("cves", [])
-            elif response.name == "lookup_mitre_technique":
-                evidence["mitre_techniques"] = payload.get("techniques", [])
+            evidence["recommended_playbook"] = claims.get(
+                "recommended_playbook", evidence.get("recommended_playbook")
+            )
+            evidence["claimed_cves"] = claims.get("cves", [])
+            evidence["claimed_mitre_techniques"] = claims.get("mitre_techniques", [])
+            evidence["investigation_summary"] = claims.get("investigation_summary", "")
     except Exception:
         pass
 
 
 def _parse_result(result_text: str, incident_id: str, attack_type: str) -> dict:
     """Parse the final pipeline response text into a structured result."""
+    parsed = _parse_json_object(result_text)
+    if parsed:
+        parsed.setdefault("incident_id", incident_id)
+        return parsed
+    return {
+        "incident_id": incident_id,
+        "response_status": "error",
+        "playbook": attack_type,
+        "approval_status": "unknown",
+        "actions_summary": [],
+        "report_generated": False,
+        "message": "The response agent did not return valid structured JSON.",
+        "response_summary": result_text[:300] if result_text else "No response was returned",
+    }
+
+
+def _parse_json_object(text: str) -> dict[str, Any] | None:
+    """Parse a JSON object from raw text or a Markdown fenced response."""
+    clean = text.strip()
+    if clean.startswith("```"):
+        lines = clean.splitlines()
+        clean = "\n".join(lines[1:-1]).strip() if len(lines) > 2 else clean
     try:
-        # Strip markdown code fences if present
-        clean = result_text.strip()
-        if clean.startswith("```"):
-            lines = clean.split("\n")
-            clean = "\n".join(lines[1:-1]) if len(lines) > 2 else clean
-        return json.loads(clean)
+        value = json.loads(clean)
+        return value if isinstance(value, dict) else None
     except (json.JSONDecodeError, ValueError):
-        # Return a minimal result if JSON parsing fails
-        return {
-            "incident_id": incident_id,
-            "response_status": "completed",
-            "playbook": attack_type,
-            "approval_status": "not_required",
-            "actions_summary": ["pipeline_executed"],
-            "report_generated": True,
-            "response_summary": result_text[:300] if result_text else "Pipeline completed"
-        }
+        start, end = clean.find("{"), clean.rfind("}")
+        if start < 0 or end <= start:
+            return None
+        try:
+            value = json.loads(clean[start : end + 1])
+            return value if isinstance(value, dict) else None
+        except (json.JSONDecodeError, ValueError):
+            return None
 

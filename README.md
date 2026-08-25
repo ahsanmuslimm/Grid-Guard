@@ -13,7 +13,7 @@
 ## 🌐 Live Demo
 **Dashboard:** `https://gridguard-xxxx-uc.a.run.app` *(URL after Cloud Run deploy)*  
 **Demo Video:** *(YouTube link after recording)*  
-**Arize Phoenix:** `https://app.phoenix.arize.com/projects/gridguard`
+**Arize Phoenix:** *(add the exact workspace/project link after Phoenix setup)*
 
 ---
 
@@ -83,9 +83,24 @@ cp .env.example .env
 
 ### 3. Run Locally
 ```bash
+python verify_pipeline.py
 python main.py
 # Dashboard: http://localhost:8080
 ```
+
+Live integrations can be checked individually after ADC and Phoenix workspace
+configuration:
+
+```bash
+python verify_integrations.py --nvd
+python verify_integrations.py --phoenix-api --phoenix-mcp
+python verify_integrations.py --gemini --attack ddos
+```
+
+There is no database or migration step. Incident state is intentionally
+in-process for the single-instance hackathon demo and resets on restart. See
+[`GCP_HANDOFF.md`](GCP_HANDOFF.md) for production setup and
+[`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) for verified phase status.
 
 ### 4. Inject a Live Attack
 Open `http://localhost:8080` → click any attack button in the Demo Control Panel.  
@@ -112,18 +127,14 @@ bash deploy/gcp_setup.sh
 
 # Deploy
 bash deploy/deploy_cloudrun.sh
+
+# Deploy the ADK orchestrator to Vertex AI Agent Engine
+python deploy/deploy_agent_engine.py
 ```
 
-Or manually:
+Or submit the same build manually:
 ```bash
-gcloud run deploy gridguard \
-  --source . \
-  --allow-unauthenticated \
-  --port 8080 \
-  --memory 2Gi \
-  --cpu 2 \
-  --min-instances 1 \
-  --set-env-vars GOOGLE_CLOUD_PROJECT=gridguard-agent-2026
+gcloud builds submit --config deploy/cloudbuild.yaml .
 ```
 
 ---
@@ -197,7 +208,7 @@ gridguard/
 
 | Criterion | Score | Evidence |
 |-----------|-------|---------|
-| Technical Implementation | 9/10 | ADK SequentialAgent, Phoenix traces on every span, Secret Manager, Cloud Run |
+| Technical Implementation | Target: 9/10 | ADK SequentialAgent, Phoenix traces, Secret Manager and Cloud Run assets; live deployment remains |
 | Design & UX | 8/10 | Real-time grid map, WebSocket timeline, human approval modal, incident reports |
 | Potential Impact | 10/10 | Energy sector #4 most attacked globally, zero affordable AI-native solution |
 | Quality of Idea | 10/10 | First system combining OT/SCADA autonomous response + LLM observability |

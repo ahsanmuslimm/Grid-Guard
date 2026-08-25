@@ -1,41 +1,108 @@
-"""
-GridGuard — Arize Phoenix Evaluators
-Hallucination detection and response quality scoring.
-These run after each incident to evaluate agent decision quality.
-"""
+"""Grounding and response-quality evaluation with Phoenix annotations."""
+
+from __future__ import annotations
 
 import os
 import re
-from datetime import datetime, timezone 
-from typing import Any 
+from datetime import datetime, timezone
+from typing import Any
 
-_incident_evaluations: list[dict[str, Any]] = [] 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+_incident_evaluations: list[dict[str, Any]] = []
+_CVE_PATTERN = re.compile(r"CVE-\d{4}-\d{4,}", re.IGNORECASE)
+_MITRE_PATTERN = re.compile(r"T\d{4}(?:\.\d{3})?", re.IGNORECASE)
 
 
+def _reference_id(item: Any, *keys: str) -> str:
+    if isinstance(item, str):
+        return item.strip().upper()
+    if isinstance(item, dict):
+        for key in keys:
+            value = item.get(key)
+            if value:
+                return str(value).strip().upper()
+    return ""
 
-def evaluate_incident(incident_id: str, attack_type: str, investigation_result: dict | None, response_result: dict | None) -> dict[str, Any]:
-    """Run credential-free grounding and response-quality checks."""
+
+def evaluate_incident(
+    incident_id: str,
+    attack_type: str,
+    investigation_result: dict | None,
+    response_result: dict | None,
+) -> dict[str, Any]:
+    """Compare agent claims with exact threat-intelligence tool outputs."""
     investigation = investigation_result or {}
     response = response_result or {}
-    cves = investigation.get("cves", []) if isinstance(investigation, dict) else []
-    techniques = investigation.get("mitre_techniques", []) if isinstance(investigation, dict) else []
-    invalid_cves = [str(item.get("id", "")) for item in cves if not re.fullmatch(r"CVE-\d{4}-\d{4,}", str(item.get("id", "")))]
-    invalid_techniques = [
-        str(item.get("technique_id", item.get("id", ""))) for item in techniques
-        if not re.fullmatch(r"T\d{4}(?:\.\d{3})?", str(item.get("technique_id", item.get("id", ""))))
-    ]
+
+    grounded_cves = {
+        value for value in (
+            _reference_id(item, "id", "cve_id") for item in investigation.get("cves", [])
+        ) if value
+    }
+    grounded_mitre = {
+        value for value in (
+            _reference_id(item, "technique_id", "id")
+            for item in investigation.get("mitre_techniques", [])
+        ) if value
+    }
+    claimed_cves = {
+        value for value in (
+            _reference_id(item, "id", "cve_id")
+            for item in investigation.get("claimed_cves", [])
+        ) if value
+    }
+    claimed_mitre = {
+        value for value in (
+            _reference_id(item, "technique_id", "id")
+            for item in investigation.get("claimed_mitre_techniques", [])
+        ) if value
+    }
+
+    malformed_cves = sorted(value for value in claimed_cves if not _CVE_PATTERN.fullmatch(value))
+    malformed_mitre = sorted(value for value in claimed_mitre if not _MITRE_PATTERN.fullmatch(value))
+    ungrounded_cves = sorted(claimed_cves - grounded_cves)
+    ungrounded_mitre = sorted(claimed_mitre - grounded_mitre)
+    hallucination_flagged = bool(
+        malformed_cves or malformed_mitre or ungrounded_cves or ungrounded_mitre
+    )
+
     selected_playbook = response.get("playbook") or investigation.get("recommended_playbook")
     playbook_match = selected_playbook == attack_type
-    completed = response.get("response_status", response.get("status")) not in {None, "error"}
+    response_status = response.get("response_status", response.get("status"))
+    completed = response_status not in {None, "error", "timeout"}
+    quality_score = round(
+        (0.5 if playbook_match else 0.0)
+        + (0.3 if completed else 0.0)
+        + (0.2 if not hallucination_flagged else 0.0),
+        2,
+    )
+
+    claim_count = len(claimed_cves) + len(claimed_mitre)
+    grounded_claim_count = len(claimed_cves & grounded_cves) + len(claimed_mitre & grounded_mitre)
     evaluation = {
         "incident_id": incident_id,
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
-        "hallucination_flagged": bool(invalid_cves or invalid_techniques),
-        "invalid_cves": invalid_cves,
-        "invalid_mitre_techniques": invalid_techniques,
-        "grounded_reference_count": len(cves) + len(techniques) - len(invalid_cves) - len(invalid_techniques),
+        "hallucination_flagged": hallucination_flagged,
+        "malformed_cves": malformed_cves,
+        "malformed_mitre_techniques": malformed_mitre,
+        "ungrounded_cves": ungrounded_cves,
+        "ungrounded_mitre_techniques": ungrounded_mitre,
+        "grounded_reference_count": len(grounded_cves) + len(grounded_mitre),
+        "claimed_reference_count": claim_count,
+        "grounded_claim_count": grounded_claim_count,
+        "claim_capture_status": "captured" if claim_count else "no_references_claimed",
         "playbook_match": playbook_match,
-        "quality_score": round((0.7 if playbook_match else 0.0) + (0.3 if completed else 0.0), 2),
+        "selected_playbook": selected_playbook,
+        "response_completed": completed,
+        "quality_score": quality_score,
+        "explanation": (
+            "All claimed CVE and MITRE references were returned by the lookup tools."
+            if not hallucination_flagged
+            else "The agent claimed one or more malformed or tool-ungrounded threat references."
+        ),
     }
     _incident_evaluations.append(evaluation)
     if len(_incident_evaluations) > 100:
@@ -47,130 +114,122 @@ def get_incident_evaluations() -> list[dict[str, Any]]:
     return list(reversed(_incident_evaluations))
 
 
-def setup_evaluators() -> dict:
-    """
-    Configure and return GridGuard evaluators.
-    Uses Gemini as the evaluation model (no additional API keys needed).
-    """
+def publish_evaluation_annotations(span_id: str, evaluation: dict[str, Any]) -> str:
+    """Attach grounding and quality evaluations to a Phoenix root span."""
+    api_key = os.getenv("PHOENIX_API_KEY", "").strip()
+    if not api_key or not span_id:
+        return "skipped_not_configured"
     try:
-        from phoenix.evals import HallucinationEvaluator, RelevanceEvaluator
-        from phoenix.evals.models import GeminiModel
+        from phoenix.client import Client
 
-        eval_model = GeminiModel(
-            model=os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
-            project=os.getenv("GOOGLE_CLOUD_PROJECT", "gridguard-agent-2026")
+        client = Client(
+            base_url=os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com").rstrip("/"),
+            api_key=api_key,
         )
-
-        hallucination_evaluator = HallucinationEvaluator(eval_model)
-        relevance_evaluator = RelevanceEvaluator(eval_model)
-
-        print("✓ Hallucination evaluator configured")
-        print("✓ Response quality (relevance) evaluator configured")
-
-        return {
-            "hallucination": hallucination_evaluator,
-            "relevance": relevance_evaluator
-        }
-    except Exception as e:
-        print(f"⚠ Evaluator setup failed: {e}")
-        return {}
-
-
-def run_response_evaluation(spans_df: Any, evaluators: dict) -> dict:
-    """
-    Run post-incident evaluations on completed agent spans.
-    Call this after each incident pipeline completes.
-
-    Args:
-        spans_df: Pandas DataFrame of spans from Phoenix client
-        evaluators: Dict from setup_evaluators()
-
-    Returns:
-        Dict with hallucination_results and relevance_results DataFrames
-    """
-    if not evaluators or spans_df is None or (hasattr(spans_df, 'empty') and spans_df.empty):
-        return {"status": "skipped", "reason": "no spans or evaluators available"}
-
-    try:
-        from phoenix.evals import run_evals
-
-        results = run_evals(
-            dataframe=spans_df,
-            evaluators=list(evaluators.values()),
-            provide_explanation=True   # Show WHY hallucination was flagged
+        hallucinated = bool(evaluation["hallucination_flagged"])
+        client.spans.add_span_annotation(
+            span_id=span_id,
+            annotation_name="hallucination",
+            annotator_kind="CODE",
+            label="hallucinated" if hallucinated else "grounded",
+            score=0.0 if hallucinated else 1.0,
+            explanation=evaluation["explanation"],
+            metadata={"incident_id": evaluation["incident_id"], "evaluator": "gridguard-grounding-v2"},
+            identifier="gridguard-grounding-v2",
+            sync=False,
         )
+        client.spans.add_span_annotation(
+            span_id=span_id,
+            annotation_name="response_quality",
+            annotator_kind="CODE",
+            label="pass" if evaluation["quality_score"] >= 0.8 else "review",
+            score=float(evaluation["quality_score"]),
+            explanation=(
+                f"playbook_match={evaluation['playbook_match']}; "
+                f"response_completed={evaluation['response_completed']}; "
+                f"grounded={not hallucinated}"
+            ),
+            metadata={"incident_id": evaluation["incident_id"], "evaluator": "gridguard-quality-v2"},
+            identifier="gridguard-quality-v2",
+            sync=False,
+        )
+        return "submitted"
+    except Exception as exc:
+        return f"error:{type(exc).__name__}"
 
-        return {
-            "status": "completed",
-            "results": results,
-            "span_count": len(spans_df)
-        }
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+
+def _field(item: Any, key: str, default: Any = None) -> Any:
+    if isinstance(item, dict):
+        return item.get(key, default)
+    return getattr(item, key, default)
 
 
 def get_phoenix_stats() -> dict[str, Any]:
-    """
-    Fetch live stats from Phoenix API for the dashboard observability panel.
-    Returns trace count, hallucination flag count, avg quality score.
-    """
-    import requests
-
-    phoenix_base = os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com")
-    api_key = os.getenv("PHOENIX_API_KEY", "")
-
+    """Fetch real Phoenix trace and evaluation statistics for the dashboard."""
+    api_key = os.getenv("PHOENIX_API_KEY", "").strip()
+    base_url = os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com").rstrip("/")
+    project = os.getenv("PHOENIX_PROJECT_NAME", "gridguard")
     if not api_key:
-        return _mock_phoenix_stats()
-
-    headers = {"api_key": api_key, "Content-Type": "application/json"}
+        return _local_phoenix_stats(base_url, "disconnected")
 
     try:
-        # Query Phoenix REST API for project stats
-        resp = requests.get(
-            f"{phoenix_base}/api/v1/projects/gridguard/spans",
-            headers=headers,
-            params={"limit": 1},
-            timeout=5
+        from phoenix.client import Client
+
+        client = Client(base_url=base_url, api_key=api_key)
+        start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        spans = client.spans.get_spans(
+            project_identifier=project,
+            start_time=start_of_day,
+            limit=1000,
+            timeout=8,
         )
-        if resp.status_code == 200:
-            data = resp.json()
-            return {
-                "total_traces": data.get("total", 0),
-                "hallucination_flags": _count_hallucination_flags(phoenix_base, headers),
-                "avg_quality_score": 0.87,   # Updated by evaluators post-run
-                "phoenix_url": f"{phoenix_base}/projects/gridguard",
-                "status": "connected"
-            }
-    except Exception:
-        pass
+        trace_ids = {
+            _field(_field(span, "context", {}), "trace_id", "") for span in spans
+        }
+        trace_ids.discard("")
+        annotations = client.spans.get_span_annotations(
+            spans=spans,
+            project_identifier=project,
+            include_annotation_names=["hallucination", "response_quality"],
+            limit=1000,
+            timeout=8,
+        ) if spans else []
 
-    return _mock_phoenix_stats()
+        hallucination_flags = 0
+        quality_scores: list[float] = []
+        for annotation in annotations:
+            name = _field(annotation, "name", "")
+            result = _field(annotation, "result", {}) or {}
+            label = _field(result, "label", "")
+            score = _field(result, "score")
+            if name == "hallucination" and label == "hallucinated":
+                hallucination_flags += 1
+            if name == "response_quality" and isinstance(score, (int, float)):
+                quality_scores.append(float(score))
+
+        return {
+            "total_traces": len(trace_ids),
+            "hallucination_flags": hallucination_flags,
+            "avg_quality_score": round(sum(quality_scores) / len(quality_scores), 2) if quality_scores else 0.0,
+            "phoenix_url": base_url,
+            "project_name": project,
+            "status": "connected",
+        }
+    except Exception as exc:
+        stats = _local_phoenix_stats(base_url, "disconnected")
+        stats["error"] = type(exc).__name__
+        return stats
 
 
-def _count_hallucination_flags(base_url: str, headers: dict) -> int:
-    """Count spans flagged for hallucination in Phoenix."""
-    import requests
-    try:
-        resp = requests.get(
-            f"{base_url}/api/v1/projects/gridguard/evaluations",
-            headers=headers,
-            params={"evaluation_name": "hallucination", "label": "hallucinated"},
-            timeout=5
-        )
-        if resp.status_code == 200:
-            return resp.json().get("total", 0)
-    except Exception:
-        pass
-    return 0
-
-
-def _mock_phoenix_stats() -> dict:
-    """Return placeholder stats when Phoenix API is unreachable."""
+def _local_phoenix_stats(base_url: str, status: str) -> dict[str, Any]:
     local_scores = [item["quality_score"] for item in _incident_evaluations]
     return {
         "total_traces": len(_incident_evaluations),
-        "hallucination_flags": sum(1 for item in _incident_evaluations if item["hallucination_flagged"]),
+        "hallucination_flags": sum(
+            1 for item in _incident_evaluations if item["hallucination_flagged"]
+        ),
         "avg_quality_score": round(sum(local_scores) / len(local_scores), 2) if local_scores else 0.0,
-        "phoenix_url": "https://app.phoenix.arize.com",
-        "status": "local" if _incident_evaluations else "disconnected"
+        "phoenix_url": base_url,
+        "project_name": os.getenv("PHOENIX_PROJECT_NAME", "gridguard"),
+        "status": "local" if _incident_evaluations else status,
     }

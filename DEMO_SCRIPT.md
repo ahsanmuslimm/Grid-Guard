@@ -112,7 +112,7 @@ Phoenix flagged it."
 "This is the trust layer that no other system provides.
 You don't just know *what* the AI did — you know *why*, and whether you can trust it."
 
-**SHOW:** Response quality score — 0.87/1.0
+**SHOW:** The actual response quality score produced for this incident (do not use a hard-coded value).
 
 ---
 

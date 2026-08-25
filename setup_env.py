@@ -10,7 +10,7 @@ import pathlib
 ENV_PATH = pathlib.Path(".env")
 
 print("\n" + "=" * 60)
-print("  GridGuard — Environment Setup")
+print("  GridGuard - Environment Setup")
 print("  This creates your .env file with real API keys")
 print("=" * 60 + "\n")
  
@@ -30,10 +30,10 @@ gcp_region   = input("GCP Region [us-central1]: ").strip() or "us-central1"
 
 # ── Arize Phoenix ──────────────────────────────────────────────
 print("\n--- Arize Phoenix ---")
-print("Get your API key at: https://app.phoenix.arize.com → Settings → API Keys")
+print("Get your API key at: https://app.phoenix.arize.com -> Settings -> API Keys")
 phoenix_key = input("PHOENIX_API_KEY: ").strip()
 if not phoenix_key:
-    print("⚠ No Phoenix key entered — traces won't be sent. You can add it later.")
+    print("[WARN] No Phoenix key entered - traces won't be sent. You can add it later.")
 
 # ── NVD API Key ────────────────────────────────────────────────
 print("\n--- NIST NVD API (optional but recommended) ---")
@@ -49,47 +49,51 @@ env_content = f"""# ============================================================
 # --- Google Cloud ---
 GOOGLE_CLOUD_PROJECT={gcp_project}
 GOOGLE_CLOUD_REGION={gcp_region}
-GOOGLE_APPLICATION_CREDENTIALS=./credentials/gcp-key.json
+GOOGLE_CLOUD_LOCATION={gcp_region}
+GOOGLE_GENAI_USE_ENTERPRISE=1
 
 # --- Arize Phoenix ---
 PHOENIX_API_KEY={phoenix_key}
 PHOENIX_BASE_URL=https://app.phoenix.arize.com
+PHOENIX_PROJECT_NAME=gridguard
+GRIDGUARD_ENABLE_PHOENIX_MCP=true
 
 # --- Threat Intelligence APIs ---
 NVD_API_KEY={nvd_key}
 
 # --- App Config ---
 GRIDGUARD_ENV=development
+GRIDGUARD_MODEL=gemini-3-flash-preview
 LOG_LEVEL=INFO
 PORT=8080
 """
 
 ENV_PATH.write_text(env_content, encoding="utf-8")
-print(f"\n✓ .env created successfully")
+print(f"\n[OK] .env created successfully")
 
 # Verify key packages
 print("\n--- Verifying installation ---")
 try:
     from google.adk.agents import LlmAgent
-    print("✓ google-adk: OK")
+    print("[OK] google-adk")
 except ImportError:
-    print("✗ google-adk missing — run: pip install -r requirements.txt")
+    print("[ERROR] google-adk missing - run: pip install -r requirements.txt")
 
 try:
     from phoenix.otel import register
-    print("✓ arize-phoenix-otel: OK")
+    print("[OK] arize-phoenix-otel")
 except ImportError:
-    print("✗ arize-phoenix-otel missing — run: pip install -r requirements.txt")
+    print("[ERROR] arize-phoenix-otel missing - run: pip install -r requirements.txt")
 
 try:
     from fastapi import FastAPI
-    print("✓ fastapi: OK")
+    print("[OK] fastapi")
 except ImportError:
-    print("✗ fastapi missing — run: pip install -r requirements.txt")
+    print("[ERROR] fastapi missing - run: pip install -r requirements.txt")
 
 if phoenix_key:
-    print(f"\n✓ Phoenix traces will appear at:")
-    print(f"  https://app.phoenix.arize.com/projects/gridguard")
+    print(f"\n[OK] Phoenix traces will appear at:")
+    print("  Open the exact workspace/project link shown by your Phoenix account")
 
 print("\n" + "=" * 60)
 print("  Setup complete! Run: python main.py")

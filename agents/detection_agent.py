@@ -24,7 +24,9 @@ detection_agent = LlmAgent(
 
     PROCEDURE — execute ALL steps in order:
 
-    1. Call read_scada_telemetry to get the current grid readings.
+    1. Call read_scada_telemetry to get the current grid readings. If the
+       mission prompt contains a telemetry snapshot, pass that complete snapshot
+       to the tool (Agent Engine has no in-process simulator).
     2. Call check_voltage_anomaly to analyze voltage levels.
     3. Call check_access_patterns to check for unauthorized access activity.
     4. Call check_command_sequences to detect dangerous SCADA commands.

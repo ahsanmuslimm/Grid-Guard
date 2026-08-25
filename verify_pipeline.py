@@ -14,7 +14,7 @@ from simulator.scada_simulator import simulator
 from simulator.attack_scenarios import inject_ransomware
 base = simulator.generate_normal_reading('SUBSTATION_005')
 attack = inject_ransomware(base)
-print(f"[1] Simulator       OK — ransomware voltage: {attack['voltage']}V (normal ~230V)")
+print(f"[1] Simulator       OK - ransomware voltage: {attack['voltage']}V (normal ~230V)")
 
 # 2. Telemetry tools
 from tools.scada_reader import set_telemetry, check_voltage_anomaly, check_access_patterns, check_command_sequences
@@ -41,6 +41,8 @@ print(f"[4] CVE Lookup      source={cve['source']} cves={cve_ids}")
 
 # 5. Playbook execution
 from tools.playbook_executor import execute_playbook
+from frontend.state import set_approval_result
+set_approval_result('INC-VERIFY-001', 'approved')
 pb = execute_playbook('ransomware', 'INC-VERIFY-001', {'attack_type': 'ransomware'})
 print(f"[5] Playbook        status={pb['status']} actions={len(pb['actions_taken'])}")
 for action in pb['actions_taken'][:3]:
@@ -81,4 +83,4 @@ print(f"[7] Frontend State  nodes={len(snap['node_states'])} timeline={len(snap[
 from frontend.main import app
 print(f"[8] FastAPI App     routes={len(app.routes)} registered")
 
-print("\n=== ALL CHECKS PASSED — System Ready ===")
+print("\n=== ALL CHECKS PASSED - System Ready ===")

@@ -43,8 +43,9 @@ gcloud services enable \
   cloudresourcemanager.googleapis.com \
   iam.googleapis.com \
   logging.googleapis.com \
-  monitoring.googleapis.com
-echo "  ✓ All 9 APIs enabled"
+  monitoring.googleapis.com \
+  telemetry.googleapis.com
+echo "  ✓ All required APIs enabled"
 
 # ── Step 4: Create Service Account ───────────────────────────
 echo "[4/9] Creating service account: ${SA_NAME}..."
@@ -70,18 +71,31 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
 
 echo "  ✓ Service account created with 4 roles"
 
-# ── Step 5: Download Credentials Key ─────────────────────────
-echo "[5/9] Downloading credentials key to ./credentials/gcp-key.json..."
-mkdir -p ./credentials
-gcloud iam service-accounts keys create ./credentials/gcp-key.json \
-  --iam-account="${SA_EMAIL}"
-echo "  ✓ Key downloaded — NEVER commit credentials/ to git!"
+# Cloud Build deploys Cloud Run and attaches the runtime service account.
+CLOUD_BUILD_SA=$(gcloud builds get-default-service-account --project="${PROJECT_ID}")
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${CLOUD_BUILD_SA}" \
+  --role="roles/run.admin" --quiet
+gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+  --member="serviceAccount:${CLOUD_BUILD_SA}" \
+  --role="roles/iam.serviceAccountUser" --quiet
+
+gcloud artifacts repositories describe gridguard --location="${REGION}" >/dev/null 2>&1 || \
+  gcloud artifacts repositories create gridguard \
+    --repository-format=docker --location="${REGION}" \
+    --description="GridGuard container images"
+
+# ── Step 5: Verify keyless local credentials ─────────────────
+echo "[5/9] Verifying Application Default Credentials..."
+gcloud auth application-default print-access-token >/dev/null
+echo "  ✓ ADC ready — no downloadable service-account key required"
 
 # ── Step 6: Set Environment Variables ────────────────────────
 echo "[6/9] Setting environment variables..."
-export GOOGLE_APPLICATION_CREDENTIALS="./credentials/gcp-key.json"
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_REGION="${REGION}"
+export GOOGLE_CLOUD_LOCATION="${REGION}"
+export GOOGLE_GENAI_USE_ENTERPRISE="1"
 echo "  ✓ Env vars set for this session"
 echo "  → Add these to your .env file manually"
 
@@ -125,6 +139,6 @@ echo "  Secrets: $(gcloud secrets list --format='value(name)' | tr '\n' ' ')"
 echo ""
 echo "=============================================="
 echo "  ✅ GCP Setup Complete!"
-echo "  Next: pip install -r requirements.txt"
+echo "  Next: python verify_integrations.py --gemini --attack ransomware"
 echo "  Then: python main.py"
 echo "=============================================="

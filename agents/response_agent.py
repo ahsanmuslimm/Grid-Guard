@@ -5,10 +5,15 @@ executes the appropriate playbook, and generates the incident report.
 """
 
 import os
-import uuid
 from google.adk.agents import LlmAgent
+from observability.phoenix_mcp import get_phoenix_mcp_toolset
 from tools.playbook_executor import execute_playbook, request_human_approval
 from tools.report_generator import generate_incident_report
+
+_response_tools = [execute_playbook, request_human_approval, generate_incident_report]
+_phoenix_mcp = get_phoenix_mcp_toolset()
+if _phoenix_mcp is not None:
+    _response_tools.append(_phoenix_mcp)
 
 response_agent = LlmAgent(
     name="response_agent",
@@ -52,6 +57,15 @@ response_agent = LlmAgent(
     STEP 5 — Generate incident report:
     Call generate_incident_report with all collected data from all three agents.
 
+    STEP 6 — Verify observability through Arize Phoenix MCP when Phoenix MCP
+    tools are available:
+    - Call one READ-ONLY Phoenix MCP tool to inspect the gridguard project or
+      its recent traces.
+    - Never create, update, or delete Phoenix prompts, datasets, experiments,
+      projects, annotations, or other resources.
+    - If Phoenix MCP is unavailable, set phoenix_mcp_verified=false and finish
+      normally; an observability outage must not block threat containment.
+
     OUTPUT — respond with a single JSON object:
     {
       "incident_id": "<INC-YYYYMMDD-XXXX>",
@@ -60,6 +74,7 @@ response_agent = LlmAgent(
       "approval_status": "<approved|not_required|rejected|timeout>",
       "actions_summary": ["<action1>", "<action2>", ...],
       "report_generated": true,
+      "phoenix_mcp_verified": <true|false>,
       "response_summary": "<2-3 sentences plain English summary of what happened>"
     }
 
@@ -69,7 +84,7 @@ response_agent = LlmAgent(
     3. NEVER fabricate incident IDs, action results, or report content.
     4. If request_human_approval returns "timeout", escalate — do not execute unilaterally.
     """,
-    tools=[execute_playbook, request_human_approval, generate_incident_report],
+    tools=_response_tools,
     output_key="response_result",   # Written to session.state["response_result"]
 )
 

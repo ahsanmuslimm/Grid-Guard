@@ -116,7 +116,8 @@ def push_approval_request(payload: dict) -> None:
         reasoning=f"CRITICAL threat detected — awaiting operator approval for: {payload.get('recommended_playbook')}",
         confidence=1.0,
         outcome="pending_approval",
-        severity="CRITICAL"
+        severity="CRITICAL",
+        incident_id=incident_id,
     )
 
 
@@ -127,6 +128,11 @@ def get_approval_result(incident_id: str) -> str | None:
 
 def has_pending_approval(incident_id: str) -> bool:
     return incident_id in _pending_approvals
+
+
+def clear_pending_approval(incident_id: str) -> None:
+    """Remove an expired approval request without accepting a response."""
+    _pending_approvals.pop(incident_id, None)
 
 
 def set_approval_result(incident_id: str, result: str) -> None:
@@ -141,7 +147,8 @@ def set_approval_result(incident_id: str, result: str) -> None:
         reasoning=f"Operator {result} the response for incident {incident_id}",
         confidence=1.0,
         outcome=result,
-        severity="HIGH" if result == "approved" else "MEDIUM"
+        severity="HIGH" if result == "approved" else "MEDIUM",
+        incident_id=incident_id,
     )
 
 

@@ -5,17 +5,18 @@ WebSocket pushes live threat data every 2 seconds.
 """
 
 import asyncio
-import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+
+from config import configure_environment
+
+configure_environment()
 
 from frontend.state import (
     get_dashboard_snapshot,
@@ -136,8 +137,6 @@ async def inject_attack(attack_type: str, background_tasks: BackgroundTasks):
 
     # Import here to avoid circular imports at module load
     from simulator.scada_simulator import simulator
-    from tools.scada_reader import _current_telemetry
-
     result = simulator.inject_attack(attack_type)
     node_id = result["target_node"]
 
@@ -146,6 +145,7 @@ async def inject_attack(attack_type: str, background_tasks: BackgroundTasks):
         _run_pipeline_background,
         attack_type=attack_type,
         node_id=node_id,
+        telemetry_snapshot=result.get("telemetry_snapshot"),
     )
 
     return {
@@ -218,6 +218,7 @@ async def incident_evaluations():
 @app.get("/api/status")
 async def system_status():
     """Return overall GridGuard system status."""
+    from observability.phoenix_mcp import get_phoenix_mcp_status
     from simulator.scada_simulator import simulator
     snapshot = get_dashboard_snapshot()
     return {
@@ -228,7 +229,10 @@ async def system_status():
         "node_count": len(snapshot.get("node_states", {})),
         "active_incidents": len(snapshot.get("active_incidents", [])),
         "pending_approvals": len(snapshot.get("pending_approvals", [])),
-        "phoenix_url": os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com") + "/projects/gridguard",
+        "model": os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
+        "phoenix_url": os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com"),
+        "phoenix_project": os.getenv("PHOENIX_PROJECT_NAME", "gridguard"),
+        "phoenix_mcp": get_phoenix_mcp_status(),
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
@@ -248,15 +252,18 @@ async def incident_replay(incident_id: str):
 
 # ── Background task helper ────────────────────────────────────────────────────
 
-async def _run_pipeline_background(attack_type: str, node_id: str):
+async def _run_pipeline_background(
+    attack_type: str,
+    node_id: str,
+    telemetry_snapshot: dict | None = None,
+):
     """Run the agent pipeline as a background task."""
     try:
         from agents.pipeline_runner import run_pipeline_for_attack
-        from tools.scada_reader import _current_telemetry
         await run_pipeline_for_attack(
             attack_type=attack_type,
             node_id=node_id,
-            telemetry_snapshot=dict(_current_telemetry) if _current_telemetry else None
+            telemetry_snapshot=dict(telemetry_snapshot) if telemetry_snapshot else None,
         )
     except Exception as e:
         from frontend.state import add_timeline_event

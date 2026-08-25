@@ -6,7 +6,9 @@ Zero hardcoded credentials anywhere in codebase.
 
 import os
 import functools
-from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @functools.lru_cache(maxsize=32)
@@ -25,6 +27,10 @@ def get_secret(secret_id: str, version: str = "latest") -> str:
     Raises:
         RuntimeError: If the secret cannot be retrieved and no env fallback exists.
     """
+    env_value = os.getenv(secret_id, "")
+    if os.getenv("GRIDGUARD_ENV", "development") == "development" and env_value:
+        return env_value
+
     try:
         from google.cloud import secretmanager
 
@@ -42,7 +48,6 @@ def get_secret(secret_id: str, version: str = "latest") -> str:
         print(f"[secrets] Secret Manager unavailable for '{secret_id}': {e}")
 
     # Fallback to environment variable (local development)
-    env_value = os.getenv(secret_id, "")
     if env_value:
         return env_value
 

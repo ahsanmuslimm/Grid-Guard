@@ -1,45 +1,51 @@
-# GridGuard — Cloud Build Configuration
-# Triggered automatically by: gcloud run deploy gridguard --source .
+# Build the documented Dockerfile and deploy one stateful demo instance.
+substitutions:
+  _REGION: us-central1
+  _REPOSITORY: gridguard
+  _SERVICE: gridguard
+  _PHOENIX_BASE_URL: https://app.phoenix.arize.com
+  _MODEL: gemini-3-flash-preview
 
 steps:
-  # Build container image
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: gcr.io/cloud-builders/docker
     args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/gridguard:$COMMIT_SHA'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/gridguard:latest'
-      - '-f'
-      - 'deploy/Dockerfile'
-      - '.'
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/gridguard:${BUILD_ID}
+      - -f
+      - deploy/Dockerfile
+      - .
 
-  # Push to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: gcr.io/cloud-builders/docker
     args:
-      - 'push'
-      - 'gcr.io/$PROJECT_ID/gridguard:$COMMIT_SHA'
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/gridguard:${BUILD_ID}
 
-  # Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
     args:
-      - 'run'
-      - 'deploy'
-      - 'gridguard'
-      - '--image=gcr.io/$PROJECT_ID/gridguard:$COMMIT_SHA'
-      - '--platform=managed'
-      - '--region=us-central1'
-      - '--allow-unauthenticated'
-      - '--port=8080'
-      - '--memory=2Gi'
-      - '--cpu=2'
-      - '--min-instances=1'
-      - '--max-instances=10'
-      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_REGION=us-central1,GRIDGUARD_ENV=production'
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/gridguard:${BUILD_ID}
+      - --platform=managed
+      - --region=${_REGION}
+      - --allow-unauthenticated
+      - --port=8080
+      - --memory=2Gi
+      - --cpu=2
+      - --min-instances=1
+      - --max-instances=1
+      - --timeout=300
+      - --concurrency=20
+      - --service-account=gridguard-sa@${PROJECT_ID}.iam.gserviceaccount.com
+      - --set-env-vars=GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_REGION=${_REGION},GOOGLE_CLOUD_LOCATION=${_REGION},GOOGLE_GENAI_USE_ENTERPRISE=1,GRIDGUARD_ENV=production,GRIDGUARD_MODEL=${_MODEL},LOG_LEVEL=INFO,PHOENIX_BASE_URL=${_PHOENIX_BASE_URL},PHOENIX_PROJECT_NAME=gridguard,GRIDGUARD_ENABLE_PHOENIX_MCP=true
+      - --set-secrets=PHOENIX_API_KEY=PHOENIX_API_KEY:latest,NVD_API_KEY=NVD_API_KEY:latest
 
 images:
-  - 'gcr.io/$PROJECT_ID/gridguard:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/gridguard:latest'
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/gridguard:${BUILD_ID}
 
-timeout: '1200s'
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s

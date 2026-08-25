@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+tracer_provider = None
+
 
 def initialize_phoenix():
     """
@@ -16,17 +18,25 @@ def initialize_phoenix():
     Call this once at application startup before any agent runs.
     Returns the configured tracer instance.
     """
-    from phoenix.otel import register
     from opentelemetry import trace
 
     phoenix_api_key = _get_phoenix_api_key()
     phoenix_base_url = os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com")
+    project_name = os.getenv("PHOENIX_PROJECT_NAME", "gridguard")
+    if not phoenix_api_key:
+        return trace.get_tracer("gridguard_noop")
+
+    from phoenix.otel import register
 
     # Register Phoenix as the OTel tracing backend
+    global tracer_provider
     tracer_provider = register(
-        project_name="gridguard",
-        endpoint=f"{phoenix_base_url}/v1/traces",
-        headers={"api_key": phoenix_api_key},
+        project_name=project_name,
+        endpoint=f"{phoenix_base_url.rstrip('/')}/v1/traces",
+        api_key=phoenix_api_key,
+        protocol="http/protobuf",
+        batch=True,
+        verbose=False,
     )
 
     # Auto-instrument Vertex AI (ADK uses Vertex AI under the hood)
@@ -46,8 +56,18 @@ def initialize_phoenix():
         print(f"[SKIP] GoogleGenAI instrumentation: {e}")
 
     tracer = trace.get_tracer("gridguard")
-    print(f"[OK] Phoenix tracing initialized -> {phoenix_base_url}/projects/gridguard")
+    print(f"[OK] Phoenix tracing initialized -> {phoenix_base_url} (project: {project_name})")
     return tracer
+
+
+def flush_traces(timeout_millis: int = 10000) -> bool:
+    """Flush completed spans before evaluation annotations are submitted."""
+    if tracer_provider is None:
+        return False
+    try:
+        return bool(tracer_provider.force_flush(timeout_millis=timeout_millis))
+    except Exception:
+        return False
 
 
 def _get_phoenix_api_key() -> str:

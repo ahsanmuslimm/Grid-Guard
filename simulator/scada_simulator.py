@@ -55,7 +55,7 @@ class SCADASimulator:
         self._running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        print(f"[SCADA] Simulator started — {len(NODE_IDS)} nodes, {self.interval}s interval")
+        print(f"[SCADA] Simulator started - {len(NODE_IDS)} nodes, {self.interval}s interval")
 
     def stop(self) -> None:
         """Stop the telemetry generation thread."""
@@ -81,12 +81,19 @@ class SCADASimulator:
         self._attack_duration = duration_ticks
         self._node_states[target] = "THREAT"
 
-        print(f"[SCADA] ⚠️  Attack injected: {attack_type} on {target} for {duration_ticks} ticks")
+        # Emit the first malicious reading synchronously. This guarantees that
+        # the ADK detection agent sees the injected attack rather than a stale
+        # normal reading while waiting for the next background tick.
+        telemetry_snapshot = self._generate_attack_reading()
+        self._emit(telemetry_snapshot)
+
+        print(f"[SCADA] WARNING: Attack injected: {attack_type} on {target} for {duration_ticks} ticks")
         return {
             "injected": True,
             "attack_type": attack_type,
             "target_node": target,
             "duration_ticks": duration_ticks,
+            "telemetry_snapshot": telemetry_snapshot,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
@@ -114,12 +121,16 @@ class SCADASimulator:
         """Background thread: emit telemetry ticks continuously."""
         while self._running:
             reading = self._generate_tick()
-            for cb in self._callbacks:
-                try:
-                    cb(reading)
-                except Exception as e:
-                    print(f"[SCADA] Callback error: {e}")
+            self._emit(reading)
             time.sleep(self.interval)
+
+    def _emit(self, reading: dict) -> None:
+        """Send one reading to every registered runtime callback."""
+        for callback in list(self._callbacks):
+            try:
+                callback(reading)
+            except Exception as exc:
+                print(f"[SCADA] Callback error: {exc}")
 
     def _generate_tick(self) -> dict:
         """Generate one telemetry tick, injecting attack if active."""
@@ -129,7 +140,7 @@ class SCADASimulator:
             if self._attack_duration <= 0:
                 # Attack window ended — return node to normal
                 self._node_states[self._attack_node] = "NORMAL"
-                print(f"[SCADA] Attack window ended — {self._attack_node} returning to NORMAL")
+                print(f"[SCADA] Attack window ended - {self._attack_node} returning to NORMAL")
                 self._active_attack = None
                 self._attack_node = None
         else:
