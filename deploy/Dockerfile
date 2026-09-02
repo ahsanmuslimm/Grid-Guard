@@ -39,7 +39,7 @@ EXPOSE 8080
 
 # Health check — Cloud Run waits for this before routing traffic
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f "http://localhost:${PORT:-8080}/health" || exit 1
 
 # Single uvicorn worker — required for in-process WebSocket state
 CMD ["python", "main.py"]
