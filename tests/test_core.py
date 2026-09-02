@@ -55,6 +55,25 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(evaluation["ungrounded_cves"], ["CVE-2024-99999"])
         self.assertEqual(evaluation["quality_score"], 0.8)
 
+    def test_escalated_timeout_is_not_a_completed_response(self):
+        evaluation = evaluate_incident(
+            "INC-TEST-TIMEOUT",
+            "unauthorized_access",
+            {
+                "cves": [{"id": "CVE-2024-12345"}],
+                "claimed_cves": [{"id": "CVE-2024-12345"}],
+                "recommended_playbook": "unauthorized_access",
+            },
+            {
+                "response_status": "escalated",
+                "approval_status": "timeout",
+                "playbook": "unauthorized_access",
+                "report_generated": False,
+            },
+        )
+        self.assertFalse(evaluation["response_completed"])
+        self.assertEqual(evaluation["quality_score"], 0.7)
+
 
 class PipelineParsingTests(unittest.TestCase):
     def test_markdown_json_is_parsed(self):
@@ -111,6 +130,14 @@ class SimulatorTests(unittest.TestCase):
         self.assertEqual(len(received), 1)
         self.assertEqual(result["telemetry_snapshot"]["attack_type"], "data_exfiltration")
         self.assertEqual(received[0]["node_id"], "SUBSTATION_003")
+
+    def test_replacing_attack_clears_previous_threat_node(self):
+        simulator = SCADASimulator(interval_seconds=60)
+        simulator.inject_attack("ddos", node_id="SUBSTATION_007")
+        simulator.inject_attack("ransomware", node_id="SUBSTATION_008")
+        states = simulator.get_node_states()
+        self.assertEqual(states["SUBSTATION_007"], "NORMAL")
+        self.assertEqual(states["SUBSTATION_008"], "THREAT")
 
 
 class PlaybookSafetyTests(unittest.TestCase):

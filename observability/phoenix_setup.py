@@ -12,6 +12,13 @@ load_dotenv()
 tracer_provider = None
 
 
+def _enabled(name: str, default: bool = True) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def initialize_phoenix():
     """
     Initialize Arize Phoenix tracing.
@@ -20,8 +27,13 @@ def initialize_phoenix():
     """
     from opentelemetry import trace
 
+    if not _enabled("GRIDGUARD_ENABLE_PHOENIX_TRACING", default=True):
+        print("[SKIP] Phoenix tracing disabled by configuration")
+        return trace.get_tracer("gridguard_noop")
+
     phoenix_api_key = _get_phoenix_api_key()
     phoenix_base_url = os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com")
+    collector_endpoint = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", phoenix_base_url)
     project_name = os.getenv("PHOENIX_PROJECT_NAME", "gridguard")
     if not phoenix_api_key:
         return trace.get_tracer("gridguard_noop")
@@ -32,9 +44,7 @@ def initialize_phoenix():
     global tracer_provider
     tracer_provider = register(
         project_name=project_name,
-        endpoint=f"{phoenix_base_url.rstrip('/')}/v1/traces",
         api_key=phoenix_api_key,
-        protocol="http/protobuf",
         batch=True,
         verbose=False,
     )
@@ -56,7 +66,7 @@ def initialize_phoenix():
         print(f"[SKIP] GoogleGenAI instrumentation: {e}")
 
     tracer = trace.get_tracer("gridguard")
-    print(f"[OK] Phoenix tracing initialized -> {phoenix_base_url} (project: {project_name})")
+    print(f"[OK] Phoenix tracing initialized -> {collector_endpoint} (project: {project_name})")
     return tracer
 
 

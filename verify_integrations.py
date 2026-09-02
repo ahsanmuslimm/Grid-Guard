@@ -1,7 +1,7 @@
 """Live integration checks for Phoenix MCP, Phoenix API, NVD, and Gemini.
 
-Credential values are never printed. Run individual checks after configuring
-``.env`` and Google Application Default Credentials.
+Credential values are never printed. Gemini can use either the local Developer
+API key or Vertex AI/Application Default Credentials.
 """
 
 from __future__ import annotations
@@ -19,9 +19,16 @@ def _configured(name: str) -> bool:
     return bool(os.getenv(name, "").strip())
 
 
-def check_configuration() -> bool:
-    required = ["GOOGLE_CLOUD_PROJECT", "PHOENIX_API_KEY", "PHOENIX_BASE_URL"]
-    optional = ["NVD_API_KEY", "GRIDGUARD_MODEL"]
+def check_configuration(*, gemini: bool, phoenix: bool, nvd: bool) -> bool:
+    required: list[str] = []
+    optional = ["GRIDGUARD_MODEL"]
+    if gemini:
+        vertex_mode = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "false").lower() == "true"
+        required.append("GOOGLE_CLOUD_PROJECT" if vertex_mode else "GOOGLE_API_KEY")
+    if phoenix:
+        required.extend(["PHOENIX_API_KEY", "PHOENIX_BASE_URL"])
+    if nvd:
+        optional.append("NVD_API_KEY")
     print("Configuration (values hidden):")
     for name in required + optional:
         print(f"  {'OK' if _configured(name) else 'MISSING':7} {name}")
@@ -31,7 +38,9 @@ def check_configuration() -> bool:
 def check_phoenix_api() -> bool:
     from observability.evaluators import get_phoenix_stats
 
-    stats = get_phoenix_stats()
+    # An explicit verification command must probe Phoenix even when runtime
+    # tracing is disabled for normal local application runs.
+    stats = get_phoenix_stats(respect_tracing_setting=False)
     print(
         "Phoenix API: "
         f"status={stats['status']} project={stats.get('project_name')} "
@@ -39,6 +48,8 @@ def check_phoenix_api() -> bool:
     )
     if stats.get("error"):
         print(f"  error_type={stats['error']}")
+    if stats.get("status_code"):
+        print(f"  http_status={stats['status_code']}")
     return stats["status"] == "connected"
 
 
@@ -101,7 +112,11 @@ async def main() -> int:
     )
     args = parser.parse_args()
     selected = args.phoenix_api or args.phoenix_mcp or args.nvd or args.gemini
-    check_configuration()
+    check_configuration(
+        gemini=args.gemini,
+        phoenix=(not selected or args.phoenix_api or args.phoenix_mcp),
+        nvd=(not selected or args.nvd),
+    )
     results: list[bool] = []
     if not selected or args.phoenix_api:
         results.append(check_phoenix_api())

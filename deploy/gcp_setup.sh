@@ -7,7 +7,7 @@
 
 set -e  # Exit on any error
 
-PROJECT_ID="gridguard-agent-2026"
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-grid-guard-507218}"
 PROJECT_NAME="GridGuard"
 REGION="us-central1"
 SA_NAME="gridguard-sa"
@@ -95,6 +95,7 @@ echo "[6/9] Setting environment variables..."
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_REGION="${REGION}"
 export GOOGLE_CLOUD_LOCATION="${REGION}"
+export GOOGLE_GENAI_USE_VERTEXAI="true"
 export GOOGLE_GENAI_USE_ENTERPRISE="1"
 echo "  ✓ Env vars set for this session"
 echo "  → Add these to your .env file manually"

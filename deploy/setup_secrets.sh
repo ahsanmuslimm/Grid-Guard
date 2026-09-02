@@ -5,7 +5,7 @@
 # =============================================================
 
 set -e
-PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-gridguard-agent-2026}"
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-grid-guard-507218}"
 
 echo ""
 echo "=============================================="

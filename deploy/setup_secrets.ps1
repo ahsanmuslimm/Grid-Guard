@@ -1,5 +1,5 @@
 # GridGuard Secret Manager setup for Windows PowerShell.
-param([string]$ProjectId = "gridguard-agent-2026")
+param([string]$ProjectId = "grid-guard-507218")
 
 $ErrorActionPreference = "Stop"
 

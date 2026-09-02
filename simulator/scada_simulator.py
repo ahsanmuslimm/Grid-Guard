@@ -77,6 +77,11 @@ class SCADASimulator:
             Dict confirming the injection with target node and attack type.
         """
         target = node_id or random.choice(NODE_IDS)
+        # The simulator models one injected attack window at a time. If a new
+        # demo attack replaces an unfinished one, clear the old node first so
+        # the dashboard cannot retain a stale THREAT marker.
+        if self._attack_node and self._attack_node != target:
+            self._node_states[self._attack_node] = "NORMAL"
         self._active_attack = attack_type
         self._attack_node = target
         self._attack_duration = duration_ticks
@@ -145,6 +150,11 @@ class SCADASimulator:
                 self._active_attack = None
                 self._attack_node = None
         else:
+            # Defensive reconciliation for interrupted/replaced attack
+            # windows. No node should remain THREAT without an active attack.
+            for node_id, status in self._node_states.items():
+                if status == "THREAT":
+                    self._node_states[node_id] = "NORMAL"
             # Generate readings for all nodes, mostly normal
             reading = self.generate_normal_reading()
 

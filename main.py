@@ -63,10 +63,16 @@ def startup() -> None:
 if __name__ == "__main__":
     startup()
     port = int(os.getenv("PORT", "8080"))
+    reload_enabled = os.getenv("GRIDGUARD_RELOAD", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
     uvicorn.run(
-        "frontend.main:app",
+        app,
         host="0.0.0.0",
         port=port,
-        reload=os.getenv("GRIDGUARD_ENV") == "development",
+        reload=reload_enabled,
         log_level=os.getenv("LOG_LEVEL", "info").lower(),
     )

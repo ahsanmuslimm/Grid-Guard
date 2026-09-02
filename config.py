@@ -17,6 +17,7 @@ def configure_environment() -> None:
         os.environ.setdefault("GOOGLE_CLOUD_LOCATION", region)
         os.environ.setdefault("GOOGLE_CLOUD_REGION", region)
     if os.getenv("GOOGLE_CLOUD_PROJECT"):
+        os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "true")
         os.environ.setdefault("GOOGLE_GENAI_USE_ENTERPRISE", "1")
 
     # ADC is preferred for local development. A stale key path would otherwise
@@ -24,4 +25,3 @@ def configure_environment() -> None:
     credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
     if credentials and not Path(credentials).expanduser().is_file():
         os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
-

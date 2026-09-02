@@ -52,6 +52,7 @@ def main() -> None:
         env_vars={
             "GOOGLE_CLOUD_PROJECT": project,
             "GOOGLE_CLOUD_LOCATION": location,
+            "GOOGLE_GENAI_USE_VERTEXAI": "true",
             "GOOGLE_GENAI_USE_ENTERPRISE": "1",
             "GRIDGUARD_MODEL": os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
             "GRIDGUARD_ENABLE_PHOENIX_MCP": "false",

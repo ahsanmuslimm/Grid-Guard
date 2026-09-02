@@ -583,12 +583,13 @@ async function pollPhoenixStats() {
       ? data.avg_quality_score.toFixed(2)
       : '—';
     const observable = data.status === 'connected' || data.status === 'local';
-    $('pstat-status').textContent       = data.status === 'connected' ? '✓ Cloud' : (data.status === 'local' ? '✓ Local' : '⚠ Offline');
+    const phoenixDisabled = data.status === 'disabled';
+    $('pstat-status').textContent       = data.status === 'connected' ? '✓ Cloud' : (data.status === 'local' ? '✓ Local' : (phoenixDisabled ? '○ Disabled' : '⚠ Offline'));
     $('pstat-status').className         = 'pstat-value ' + (observable ? 'pstat-good' : 'pstat-warn');
 
     $('pill-phoenix-val').textContent = observable
       ? `Observability: ${data.total_traces} traces`
-      : 'Phoenix: Offline';
+      : (phoenixDisabled ? 'Phoenix: Disabled' : 'Phoenix: Offline');
 
     if (data.phoenix_url) {
       $('phoenix-link').href = data.phoenix_url;

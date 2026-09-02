@@ -1,5 +1,7 @@
 credentials/
 .env
+.env.example
+GCP_HANDOFF.md/
 venv/
 __pycache__/
 *.pyc

@@ -4,8 +4,8 @@ Reads both upstream results, handles human approval gate for CRITICAL threats,
 executes the appropriate playbook, and generates the incident report.
 """
 
-import os
 from google.adk.agents import LlmAgent
+from agents.model_config import build_gridguard_model
 from observability.phoenix_mcp import get_phoenix_mcp_toolset
 from tools.playbook_executor import execute_playbook, request_human_approval
 from tools.report_generator import generate_incident_report
@@ -17,7 +17,7 @@ if _phoenix_mcp is not None:
 
 response_agent = LlmAgent(
     name="response_agent",
-    model=os.getenv("GRIDGUARD_MODEL", "gemini-3-flash-preview"),
+    model=build_gridguard_model(),
     description="Executes threat response playbooks and generates incident reports for confirmed SCADA threats",
     instruction="""
     You are a threat response coordinator for critical energy infrastructure.

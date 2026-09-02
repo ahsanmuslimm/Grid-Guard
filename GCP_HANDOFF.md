@@ -25,6 +25,7 @@ Keep the existing API keys and set:
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 GOOGLE_CLOUD_REGION=us-central1
 GOOGLE_CLOUD_LOCATION=us-central1
+GOOGLE_GENAI_USE_VERTEXAI=true
 GOOGLE_GENAI_USE_ENTERPRISE=1
 GRIDGUARD_MODEL=gemini-3-flash-preview
 PHOENIX_PROJECT_NAME=gridguard
@@ -110,4 +111,3 @@ gcloud run services logs read gridguard --region us-central1 --limit 100
 Then test all four attacks in a browser on an external network and confirm the
 Cloud Run trace plus `hallucination` and `response_quality` annotations in
 Phoenix.
-

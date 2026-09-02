@@ -7,7 +7,7 @@
 
 set -e
 
-PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-gridguard-agent-2026}"
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-grid-guard-507218}"
 REGION="${GOOGLE_CLOUD_REGION:-us-central1}"
 SERVICE_NAME="gridguard"
 PHOENIX_BASE_URL="${PHOENIX_BASE_URL:-https://app.phoenix.arize.com}"

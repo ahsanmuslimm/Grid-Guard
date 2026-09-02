@@ -72,7 +72,9 @@ def evaluate_incident(
     selected_playbook = response.get("playbook") or investigation.get("recommended_playbook")
     playbook_match = selected_playbook == attack_type
     response_status = response.get("response_status", response.get("status"))
-    completed = response_status not in {None, "error", "timeout"}
+    # Only a successfully executed response counts as completed. Escalated,
+    # rejected, timed-out, and failed incidents did not apply the playbook.
+    completed = response_status == "executed"
     quality_score = round(
         (0.5 if playbook_match else 0.0)
         + (0.3 if completed else 0.0)
@@ -116,6 +118,11 @@ def get_incident_evaluations() -> list[dict[str, Any]]:
 
 def publish_evaluation_annotations(span_id: str, evaluation: dict[str, Any]) -> str:
     """Attach grounding and quality evaluations to a Phoenix root span."""
+    tracing_enabled = os.getenv(
+        "GRIDGUARD_ENABLE_PHOENIX_TRACING", "true"
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if not tracing_enabled:
+        return "skipped_tracing_disabled"
     api_key = os.getenv("PHOENIX_API_KEY", "").strip()
     if not api_key or not span_id:
         return "skipped_not_configured"
@@ -164,11 +171,16 @@ def _field(item: Any, key: str, default: Any = None) -> Any:
     return getattr(item, key, default)
 
 
-def get_phoenix_stats() -> dict[str, Any]:
+def get_phoenix_stats(*, respect_tracing_setting: bool = True) -> dict[str, Any]:
     """Fetch real Phoenix trace and evaluation statistics for the dashboard."""
     api_key = os.getenv("PHOENIX_API_KEY", "").strip()
     base_url = os.getenv("PHOENIX_BASE_URL", "https://app.phoenix.arize.com").rstrip("/")
     project = os.getenv("PHOENIX_PROJECT_NAME", "gridguard")
+    tracing_enabled = os.getenv(
+        "GRIDGUARD_ENABLE_PHOENIX_TRACING", "true"
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if respect_tracing_setting and not tracing_enabled:
+        return _local_phoenix_stats(base_url, "disabled")
     if not api_key:
         return _local_phoenix_stats(base_url, "disconnected")
 
@@ -218,6 +230,10 @@ def get_phoenix_stats() -> dict[str, Any]:
     except Exception as exc:
         stats = _local_phoenix_stats(base_url, "disconnected")
         stats["error"] = type(exc).__name__
+        response = getattr(exc, "response", None)
+        status_code = getattr(response, "status_code", None)
+        if status_code is not None:
+            stats["status_code"] = int(status_code)
         return stats
 
 

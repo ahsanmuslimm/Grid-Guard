@@ -26,7 +26,7 @@ print("Press Enter to keep the default value shown in [brackets].\n")
 
 # ── Google Cloud ───────────────────────────────────────────────
 print("--- Google Cloud ---")
-gcp_project = input("GCP Project ID [gridguard-agent-2026]: ").strip() or "gridguard-agent-2026"
+gcp_project = input("GCP Project ID [grid-guard-507218]: ").strip() or "grid-guard-507218"
 gcp_region   = input("GCP Region [us-central1]: ").strip() or "us-central1"
 
 # ── Arize Phoenix ──────────────────────────────────────────────
@@ -51,6 +51,7 @@ env_content = f"""# ============================================================
 GOOGLE_CLOUD_PROJECT={gcp_project}
 GOOGLE_CLOUD_REGION={gcp_region}
 GOOGLE_CLOUD_LOCATION={gcp_region}
+GOOGLE_GENAI_USE_VERTEXAI=true
 GOOGLE_GENAI_USE_ENTERPRISE=1
 
 # --- Arize Phoenix ---
