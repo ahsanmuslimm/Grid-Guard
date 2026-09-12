@@ -1,4 +1,4 @@
-# ⚡ GridGuard
+#  GridGuard
 ### Autonomous Cyber Threat Response for Energy Grid Infrastructure
 **Google Cloud Rapid Agent Hackathon — Arize Phoenix MCP Track**
 
