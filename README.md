@@ -17,7 +17,7 @@
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 SCADA Telemetry Simulator (12 nodes)
