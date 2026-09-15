@@ -202,6 +202,12 @@ async def get_reports():
     return {"reports": get_all_reports()}
 
 
+@app.get("/api/incidents")
+async def get_incidents():
+    """Return incident history for the incident history panel."""
+    return {"incidents": get_incident_history()}
+
+
 @app.get("/api/timeline")
 async def get_timeline_api():
     """Return the agent decision timeline."""
@@ -247,11 +253,6 @@ async def system_status():
         "phoenix_mcp": get_phoenix_mcp_status(),
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
-
-
-@app.get("/api/incidents")
-async def incident_history():
-    return {"incidents": get_incident_history()}
 
 
 @app.get("/api/incidents/{incident_id}/replay")

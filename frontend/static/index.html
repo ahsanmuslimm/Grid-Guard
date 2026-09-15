@@ -15,7 +15,7 @@
       <span class="logo-icon">⚡</span>
       <span class="logo-text">GRID<span class="logo-accent">GUARD</span></span>
     </div>
-    <div class="header-sub">Autonomous Energy Grid Threat Response · Arize Phoenix MCP</div>
+    <div class="header-sub">Autonomous Energy Grid Threat Response · Google Cloud Rapid Agent</div>
   </div>
   <div class="header-right">
     <div class="stat-pill" id="pill-nodes">
@@ -31,8 +31,33 @@
       <span id="pill-phoenix-val">Phoenix: Connecting…</span>
     </div>
     <div class="system-time" id="system-time">--:--:--</div>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode" onclick="toggleTheme()">🌙</button>
   </div>
 </header>
+
+<!-- ══════════════════════════════════════════════════════════════ MONITORING BAR -->
+<div class="monitoring-bar" id="monitoring-bar">
+  <div class="monitor-item good" id="mon-uptime">
+    <span>⏱ Uptime</span><b id="mon-uptime-val">0m</b>
+  </div>
+  <span class="monitor-sep">·</span>
+  <div class="monitor-item" id="mon-quota">
+    <span>📊 AI Quota</span><b id="mon-quota-val">— / 1000</b>
+    <span class="quota-bar"><span class="quota-bar-fill" id="mon-quota-bar" style="width:0%"></span></span>
+  </div>
+  <span class="monitor-sep">·</span>
+  <div class="monitor-item" id="mon-pipeline">
+    <span>🤖 Pipeline</span><b id="mon-pipeline-val">Idle</b>
+  </div>
+  <span class="monitor-sep">·</span>
+  <div class="monitor-item" id="mon-incidents">
+    <span>📋 Incidents</span><b id="mon-incidents-val">0 today</b>
+  </div>
+  <span class="monitor-sep">·</span>
+  <div class="monitor-item" id="mon-ws">
+    <span>🔌 WS</span><b id="mon-ws-val">Connecting</b>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════════════ MAIN GRID -->
 <main class="main-grid">
@@ -124,6 +149,15 @@
         <span class="panel-title">🤖 Agent Decision Timeline</span>
         <span class="panel-badge" id="timeline-count">0 events</span>
       </div>
+      <!-- Filter Bar -->
+      <div class="timeline-filters" id="timeline-filters">
+        <button class="filter-btn active" id="filter-all" onclick="setTimelineFilter('all')">All</button>
+        <button class="filter-btn" id="filter-detection" onclick="setTimelineFilter('detection_agent')">🔍 Detection</button>
+        <button class="filter-btn" id="filter-investigation" onclick="setTimelineFilter('investigation_agent')">🔬 Investigation</button>
+        <button class="filter-btn" id="filter-response" onclick="setTimelineFilter('response_agent')">⚡ Response</button>
+        <button class="filter-btn" id="filter-critical" onclick="setTimelineFilter('CRITICAL')">🚨 Critical</button>
+        <button class="filter-btn" id="filter-pipeline" onclick="setTimelineFilter('gridguard_pipeline')">🤖 Pipeline</button>
+      </div>
       <div class="timeline-feed" id="timeline-feed">
         <div class="timeline-empty">
           <div class="empty-icon">⏳</div>
@@ -134,7 +168,7 @@
     </div>
   </section>
 
-  <!-- ── COL 3: Incident Reports ────────────────────────────────────────── -->
+  <!-- ── COL 3: Telemetry + Incident History + Reports ──────────────────── -->
   <section class="col-right">
 
     <!-- Telemetry Live Feed -->
@@ -163,6 +197,20 @@
       </div>
     </div>
 
+    <!-- Incident History -->
+    <div class="panel" id="panel-history">
+      <div class="panel-header">
+        <span class="panel-title">🗂 Incident History</span>
+        <span class="panel-badge" id="history-count">0 incidents</span>
+      </div>
+      <div class="incident-history-list" id="incident-history-list">
+        <div class="timeline-empty" style="padding:20px">
+          <div class="empty-icon">🗂</div>
+          <div>No incidents yet</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Incident Reports -->
     <div class="panel panel-reports" id="panel-reports">
       <div class="panel-header">
@@ -179,6 +227,18 @@
 
   </section>
 </main>
+
+<!-- ══════════════════════════════════════════════════════════ NODE SIDEBAR -->
+<div class="node-sidebar-backdrop" id="node-sidebar-backdrop" onclick="closeNodeSidebar()"></div>
+<div class="node-sidebar" id="node-sidebar">
+  <div class="node-sidebar-header">
+    <span class="node-sidebar-title" id="node-sidebar-title">Node Detail</span>
+    <button class="node-sidebar-close" onclick="closeNodeSidebar()">✕</button>
+  </div>
+  <div class="node-sidebar-body" id="node-sidebar-body">
+    <!-- populated by JS -->
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════════ APPROVAL MODAL -->
 <div class="modal-overlay hidden" id="approval-overlay">

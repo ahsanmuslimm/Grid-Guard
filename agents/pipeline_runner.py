@@ -246,6 +246,77 @@ def _make_message(text: str):
     )
 
 
+def _format_tool_result(tool_name: str, resp: Any) -> str:
+    """Convert a tool response dict into a human-readable summary string."""
+    if not isinstance(resp, dict):
+        return str(resp)[:200]
+
+    name = tool_name.replace("_", " ")
+
+    if tool_name == "read_scada_telemetry":
+        v = resp.get("voltage", "?")
+        f = resp.get("frequency", "?")
+        s = resp.get("status", "?")
+        node = resp.get("node_id", "?")
+        cmds = resp.get("command_log", [])
+        cmd_str = f", commands: {', '.join(cmds[:3])}" if cmds else ""
+        return f"{node} — {v}V / {f}Hz / {s}{cmd_str}"
+
+    if tool_name == "check_voltage_anomaly":
+        if resp.get("anomaly_detected"):
+            return (f"⚠ Voltage anomaly on {resp.get('node_id','?')}: "
+                    f"{resp.get('current_voltage','?')}V "
+                    f"({resp.get('deviation_percent','?')}% deviation) — {resp.get('severity','?')}")
+        return f"Voltage normal on {resp.get('node_id','?')}: {resp.get('current_voltage','?')}V"
+
+    if tool_name == "check_access_patterns":
+        if resp.get("anomaly_detected"):
+            events = resp.get("suspicious_events", [])
+            types = list({e.get("type","?") for e in events[:3]})
+            return f"⚠ Access anomaly on {resp.get('node_id','?')}: {', '.join(types)} ({len(events)} events)"
+        return f"Access patterns normal on {resp.get('node_id','?')}"
+
+    if tool_name == "check_command_sequences":
+        if resp.get("anomaly_detected"):
+            cmds = [c.get("command","?") for c in resp.get("dangerous_commands", [])[:3]]
+            return f"⚠ Dangerous commands on {resp.get('node_id','?')}: {', '.join(cmds)}"
+        return f"Command sequences normal on {resp.get('node_id','?')}"
+
+    if tool_name == "lookup_mitre_technique":
+        techs = resp.get("techniques", [])
+        ids = [t.get("technique_id","?") for t in techs[:3]]
+        names = [t.get("name","?") for t in techs[:2]]
+        return f"MITRE ICS: {', '.join(ids)} — {', '.join(names)}" if ids else "No MITRE techniques found"
+
+    if tool_name == "lookup_cve":
+        cves = resp.get("cves", [])
+        ids = [c.get("id","?") for c in cves[:3]]
+        return f"CVEs found: {', '.join(ids)} ({len(cves)} total)" if ids else "No CVEs found"
+
+    if tool_name == "execute_playbook":
+        status = resp.get("status","?")
+        playbook = resp.get("playbook","?")
+        actions = resp.get("actions_taken", [])
+        n = len(actions)
+        return f"Playbook '{playbook}' {status} — {n} action{'s' if n != 1 else ''} executed"
+
+    if tool_name == "request_human_approval":
+        approval = resp.get("approval_status","?")
+        waited = resp.get("waited_seconds","?")
+        return f"Approval result: {approval} (responded after {waited}s)"
+
+    if tool_name == "generate_incident_report":
+        rid = resp.get("report_id","?")
+        title = resp.get("title","?")
+        return f"Report {rid} generated: {title}"
+
+    # Generic fallback — pick a few meaningful keys
+    meaningful = {k: v for k, v in resp.items()
+                  if k not in ("timestamp","node_id") and v is not None}
+    parts = [f"{k}: {str(v)[:40]}" for k, v in list(meaningful.items())[:4]]
+    return f"{name} — {', '.join(parts)}" if parts else name
+
+
 def _log_event_to_timeline(event: Any, incident_id: str) -> None:
     """Extract agent step information from ADK events and log to timeline."""
     try:
@@ -263,24 +334,34 @@ def _log_event_to_timeline(event: Any, incident_id: str) -> None:
             fn_call = getattr(part, "function_call", None)
 
             if fn_call:
+                # Format args as human-readable key=value pairs
+                args_dict = dict(fn_call.args) if fn_call.args else {}
+                args_preview = ", ".join(
+                    f"{k}={str(v)[:40]}" for k, v in list(args_dict.items())[:3]
+                )
                 add_timeline_event(
                     agent_name=author,
-                    action=f"tool_call:{fn_call.name}",
-                    reasoning=f"Calling {fn_call.name} with args: {str(dict(fn_call.args))[:150]}",
+                    action=f"→ {fn_call.name.replace('_', ' ').title()}",
+                    reasoning=f"Calling {fn_call.name.replace('_', ' ')}({args_preview})",
                     confidence=0.9,
                     outcome="executing",
                     severity="INFO",
                     incident_id=incident_id,
                 )
             elif fn_response:
-                # Determine severity from response content
-                resp_str = str(fn_response.response)[:200]
-                lowered = resp_str.lower()
-                severity = "HIGH" if "critical" in lowered or "anomaly_detected" in lowered and "true" in lowered else "INFO"
+                resp = fn_response.response
+                # Unwrap ADK result wrapper
+                if isinstance(resp, dict) and "result" in resp:
+                    resp = resp["result"]
+                # Build human-readable summary instead of raw dict
+                summary = _format_tool_result(fn_response.name, resp)
+                lowered = str(resp).lower()
+                severity = "HIGH" if ("critical" in lowered or
+                    ("anomaly_detected" in lowered and "true" in lowered)) else "INFO"
                 add_timeline_event(
                     agent_name=author,
-                    action=f"tool_result:{fn_response.name}",
-                    reasoning=f"Result from {fn_response.name}: {resp_str}",
+                    action=f"← {fn_response.name.replace('_', ' ').title()}",
+                    reasoning=summary,
                     confidence=0.9,
                     outcome="completed",
                     severity=severity,
